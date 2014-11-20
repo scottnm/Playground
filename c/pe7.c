@@ -23,9 +23,8 @@ long long int findPrime(int n){
 	return i;
 }
 
-int isPrime(long long i){
-	long long num = i;
-	i--;
+int isPrime(long long num){
+	long long i = num-1;
 	while(i>1){
 		if(num%i==0)
 			return 0;
