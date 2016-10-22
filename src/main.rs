@@ -1,6 +1,6 @@
 fn main()
 {
-    let mut board = [[-1; 9]; 9];
+    let mut board = [[0; 9]; 9];
     board[0][0] = 1;
     board[1][0] = 2;
     board[2][0] = 3;
@@ -12,7 +12,29 @@ fn main()
     board[2][2] = 9;
     let valid = is_valid(&board, (2, 2), (0, 0));
     let valid_str = if valid { "True" } else {"False"};
-    println!("Valid? {}", valid_str);
+    println!("Valid? {}\n", valid_str);
+    print_board(&board);
+}
+
+fn print_board(board : &[[i8; 9]; 9])
+{
+    for row in 0..9
+    {
+        for col in 0..9
+        {
+            print!("{}", board[row][col]);
+            if (col + 1) % 3 == 0 && col != 8
+            {
+                print!("|");
+            }
+        }
+        println!("");
+        
+        if (row + 1) % 3 == 0 && row != 8
+        {
+            println!("---+---+---");
+        }
+    }
 }
 
 fn is_valid(board : &[[i8; 9]; 9],
