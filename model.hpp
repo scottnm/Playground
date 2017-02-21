@@ -6,16 +6,13 @@
 #include <string>
 #include <vector>
 
-namespace model
+typedef struct
 {
-    typedef struct
-    {
-        std::vector<glm::vec3> verts;
-        std::vector<glm::ivec3> faces;
-    } model;
+    std::vector<glm::vec3> verts;
+    std::vector<glm::ivec3> faces;
+} model;
 
-    std::unique_ptr<model> load_model(const std::string& file);
-    void test_print_model(const model& m);
-}
+std::unique_ptr<model> load_model(const std::string& file);
+void test_print_model(const model& m);
 
 #endif //__MODEL_H__
