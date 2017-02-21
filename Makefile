@@ -1,10 +1,11 @@
 CC           = g++
-CPPFLAGS     = -std=c++11
+CPPFLAGS     = -std=c++1y
 LDFLAGS      = -lprofiler
 LIBS         = -lm
 MAIN_SRC     = main.cpp
 TEST_SRC     = profile-test.cpp
 COMMON_SRC   = render_geometry.cpp \
+			   model.cpp \
 			   tgaimage.cpp
 
 DESTDIR = ./
@@ -15,6 +16,7 @@ OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 exec: $(TARGET)
 
+.PHONY: $(TARGET)
 $(TARGET):
 	$(CC) $(CPPFLAGS) $(MAIN_SRC) $(COMMON_SRC) -o $(TARGET) $(LIBS)
 
