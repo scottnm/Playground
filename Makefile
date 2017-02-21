@@ -4,7 +4,7 @@ LDFLAGS      = -lprofiler
 LIBS         = -lm
 MAIN_SRC     = main.cpp
 TEST_SRC     = profile-test.cpp
-COMMON_SRC   = line.cpp \
+COMMON_SRC   = render_geometry.cpp \
 			   tgaimage.cpp
 
 DESTDIR = ./
