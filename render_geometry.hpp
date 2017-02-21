@@ -5,7 +5,7 @@
 #include "tgaimage.hpp"
 #include <glm/vec2.hpp>
 
-using glm::ivec2;
+using glm::ivec3;
 using glm::vec3;
 
 void render_line (
@@ -16,12 +16,18 @@ void render_line (
         const vec3 scale,
         const vec3 origin);
 
+void render_line (
+        TGAImage& img,
+        const TGAColor color,
+        ivec3 start,
+        ivec3 dest);
+
 void render_triangle (
         TGAImage& img,
         const TGAColor color,
-        const vec3 v1,
-        const vec3 v2,
-        const vec3 v3,
+        vec3 v1,
+        vec3 v2,
+        vec3 v3,
         const vec3 scale,
         const vec3 origin);
 
