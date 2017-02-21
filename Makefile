@@ -1,23 +1,34 @@
 CC           = g++
-CPPFLAGS     =
-LDFLAGS      =
+CPPFLAGS     = -std=c++11
+LDFLAGS      = -lprofiler
 LIBS         = -lm
+MAIN_SRC     = main.cpp
+TEST_SRC     = profile-test.cpp
+COMMON_SRC   = line.cpp \
+			   tgaimage.cpp
 
 DESTDIR = ./
 TARGET  = main
+PROFILE_TARGET = main-profile
 
 OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-all: $(DESTDIR)$(TARGET)
+exec: $(TARGET)
 
-$(DESTDIR)$(TARGET): $(OBJECTS)
-	$(CC) -Wall $(LDFLAGS) -o $(DESTDIR)$(TARGET) $(OBJECTS) $(LIBS)
+$(TARGET):
+	$(CC) $(CPPFLAGS) $(MAIN_SRC) $(COMMON_SRC) -o $(TARGET) $(LIBS)
 
-$(OBJECTS): %.o: %.cpp
-	$(CC) -Wall $(CPPFLAGS) -c $(CFLAGS) $< -o $@
+profile: $(PROFILE_TARGET)
 
+$(PROFILE_TARGET):
+	$(CC) $(CPPFLAGS) $(TEST_SRC) $(COMMON_SRC) -o $(PROFILE_TARGET) $(LIBS) $(LDFLAGS)
+	export CPUPROFILE=/tmp/prof.out
+	./$(PROFILE_TARGET)
+	pprof ./$(PROFILE_TARGET) /tmp/prof.out
+  
 clean:
-	-rm -f $(OBJECTS)
+	-rm -f *.o
 	-rm -f $(TARGET)
+	-rm -f $(PROFILE_TARGET)
 	-rm -f *.tga
 
