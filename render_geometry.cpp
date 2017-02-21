@@ -2,7 +2,7 @@
 
 namespace render_geometry
 {
-    void line(TGAImage& img, const TGAColor color, vec2i start, vec2i dest)
+    void line(TGAImage& img, const TGAColor color, ivec2 start, ivec2 dest)
     {
         // optionally transpose parameters so that the slope has a greater xdiff
         bool transposed = false;

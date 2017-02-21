@@ -1,6 +1,5 @@
 #include "render_geometry.hpp"
 #include "tgaimage.hpp"
-#include "vec2i.hpp"
 #include <cmath>
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
