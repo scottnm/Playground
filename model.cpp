@@ -5,14 +5,13 @@
 using std::istringstream;
 using std::ifstream;
 using std::string;
-using std::unique_ptr;
 
-unique_ptr<model> load_model(const string& file)
+std::unique_ptr<model> load_model(const string& file)
 {
     const static string VERTEX_KEY("v");
     const static string FACE_KEY("f");
 
-    auto model_ptr = std::unique_ptr<model>(new model);
+    auto model_ptr = std::make_unique<model>();
     ifstream input_stream(file);
     string s;
     while (getline(input_stream, s))
