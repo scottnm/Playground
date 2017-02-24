@@ -136,7 +136,9 @@ void render_model (
 {
     for (auto& face : model.faces)
     {
-        render_triangle(img, white, model.verts[face[0]], model.verts[face[1]],
-                model.verts[face[2]], scale, origin);
+        auto v0 = model.verts[face.vi[0]];
+        auto v1 = model.verts[face.vi[1]];
+        auto v2 = model.verts[face.vi[2]];
+        render_triangle(img, white, v0, v1, v2, scale, origin);
     }
 }

@@ -8,8 +8,16 @@
 
 typedef struct
 {
+    glm::ivec3 vi  = {-1, -1, -1}; // vertex indices
+    glm::ivec3 vti = {-1, -1, -1}; // vertex texture indices
+    glm::ivec3 vni = {-1, -1, -1}; // vertex normal indices
+}
+face;
+
+typedef struct
+{
     std::vector<glm::vec3> verts;
-    std::vector<glm::ivec3> faces;
+    std::vector<face> faces;
 } model;
 
 std::unique_ptr<model> load_model(const std::string& file);

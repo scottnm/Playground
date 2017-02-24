@@ -6,6 +6,7 @@ using std::istringstream;
 using std::ifstream;
 using std::string;
 
+
 std::unique_ptr<model> load_model(const string& file)
 {
     const static string VERTEX_KEY("v");
@@ -14,6 +15,8 @@ std::unique_ptr<model> load_model(const string& file)
     auto model_ptr = std::make_unique<model>();
     ifstream input_stream(file);
     string s;
+
+    // load data
     while (getline(input_stream, s))
     {
         istringstream line(s);
@@ -28,20 +31,34 @@ std::unique_ptr<model> load_model(const string& file)
 
         else if(linetype == FACE_KEY)
         {
-            int verts[3];
+            face fdata;
             for (int i = 0; i < 3; ++i)
             {
                 string vertex_string;
                 line >> vertex_string;
                 istringstream vss(vertex_string);
+
                 string vertex_index;
                 getline(vss, vertex_index, '/');
-                verts[i] = stoi(vertex_index) - 1;
+                fdata.vi[i] = stoi(vertex_index) - 1;
+
+                string vertex_texture_index;
+                if (! getline(vss, vertex_texture_index, '/')) { continue; }
+                if (vertex_texture_index.length() > 0)
+                {
+                    fdata.vti[i] = stoi(vertex_texture_index) - 1;
+                }
+
+                string vertex_normal_index;
+                if (! getline(vss, vertex_normal_index, '/')) { continue; }
+                fdata.vni[i] = stoi(vertex_normal_index) - 1;
             }
-            model_ptr->faces.push_back(
-                    glm::ivec3(verts[0], verts[1], verts[2]));
+
+            model_ptr->faces.push_back(fdata);
         }
     }
+
+    // use data to construct face
     return model_ptr;
 }
 
@@ -51,9 +68,9 @@ void test_print_model(const model& m)
             m.verts.size(), m.faces.size());
     for (auto& face : m.faces)
     {
-        int vi1 = face.x;
-        int vi2 = face.y;
-        int vi3 = face.z;
+        int vi1 = face.vi.x;
+        int vi2 = face.vi.y;
+        int vi3 = face.vi.z;
         glm::vec3 v1 = m.verts[vi1];
         glm::vec3 v2 = m.verts[vi2];
         glm::vec3 v3 = m.verts[vi3];
