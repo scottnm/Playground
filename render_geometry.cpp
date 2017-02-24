@@ -28,7 +28,6 @@ void render_line (
     bool transposed = false;
     if (std::abs(dest.x - start.x) < std::abs(dest.y - start.y))
     {
-
         std::swap(start.x, start.y);
         std::swap(dest.x, dest.y);
         transposed = true;
@@ -86,8 +85,14 @@ void render_triangle (
     auto bottom_segment_height = iv2_3.y;
     for (int dy = 0; dy < bottom_segment_height; ++dy)
     {
-        auto x_alpha = (int)(iv3.x + ((float)dy / total_height) * iv1_3.x + origin.x);
-        auto x_beta = (int)(iv3.x + ((float)dy / bottom_segment_height) * iv2_3.x + origin.x);
+        auto x0 = origin.x + iv3.x;
+        
+        auto t_alpha = (float)dy / total_height;
+        auto x_alpha = (int)(x0 + t_alpha * iv1_3.x);
+
+        auto t_beta = (float)dy / bottom_segment_height;
+        auto x_beta = (int)(x0 + t_beta * iv2_3.x);
+
         if (x_alpha > x_beta)
         {
             std::swap(x_alpha, x_beta);
@@ -96,8 +101,26 @@ void render_triangle (
         render_line(img, white, {x_alpha, y, 0}, {x_beta, y, 0}); 
     }
 
-    // loop over top segment 0 -> y drawing horizontal lines
+    auto iv1_2 = iv1 - iv2;
+    auto final_segment_height = iv1_2.y;
+    for (int dy = 0; dy < final_segment_height; ++dy)
+    {
+        auto alpha0 = origin.x + iv3.x;
+        auto beta0 = origin.x + iv2.x;
+        
+        auto t_alpha = (float)(dy + bottom_segment_height) / total_height;
+        auto x_alpha = (int)(alpha0 + t_alpha * iv1_3.x);
 
+        auto t_beta = (float)dy / final_segment_height;
+        auto x_beta = (int)(beta0 + t_beta * iv1_2.x);
+
+        if (x_alpha > x_beta)
+        {
+            std::swap(x_alpha, x_beta);
+        }
+        auto y = bottom_segment_height + dy + iv3.y + (int)origin.y;
+        render_line(img, white, {x_alpha, y, 0}, {x_beta, y, 0}); 
+    }
 
     // draw border
     render_line(img, blue, v1, v2, scale, origin);
