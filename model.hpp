@@ -17,6 +17,7 @@ face;
 typedef struct
 {
     std::vector<glm::vec3> verts;
+    std::vector<glm::vec3> vert_norms;
     std::vector<face> faces;
 } model;
 

@@ -14,7 +14,8 @@ int main(int argc, char** argv)
     const int window_height = 1000;
     TGAImage image(window_width, window_height, TGAImage::RGB);
 
-    auto model_ptr = load_model("obj/african_head.obj");
+    auto file = std::string("obj/") + std::string(argv[1]) + std::string(".obj");
+    auto model_ptr = load_model(file);
     auto starttime = high_resolution_clock::now();
     render_model(image, *model_ptr,
             glm::vec3 {window_width / 2, window_height / 2, 1},
