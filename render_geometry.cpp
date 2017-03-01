@@ -9,23 +9,11 @@ static const TGAColor green = TGAColor(0, 255, 0, 255);
 static const TGAColor blue  = TGAColor(0, 0, 255, 255);
 
 void render_line (
-    TGAImage& img,
-    const TGAColor color,
-    const vec3 start,
-    const vec3 dest,
-    const vec3 scale,
-    const vec3 origin)
-{
-    ivec3 istart = {start.x * scale.x + origin.x, start.y * scale.y + origin.y, 0};
-    ivec3 idest  = {dest.x * scale.x + origin.x, dest.y * scale.y + origin.y, 0};
-    render_line(img, color, istart, idest);
-}
-
-void render_line (
         TGAImage& img,
+        z_buffer& zbuf,
         const TGAColor color,
-        ivec3 start,
-        ivec3 dest)
+        vec3 start,
+        vec3 dest)
 {
     // optionally transpose parameters so that the slope has a greater xdiff
     bool transposed = false;
@@ -45,17 +33,25 @@ void render_line (
     // draw the line
     int dx = dest.x - start.x;
     int dy = dest.y - start.y;
+    float dz = dest.z - start.z;
+
     for (int x = start.x; x < dest.x; ++x)
     {
         float t = (x - start.x)/(float)dx;
-        int y = start.y + dy * t;
+        int y = (int)(start.y + dy * t);
+        float z = start.z + dz * t;
+
+        int xcopy = x;
         if (transposed)
         {
-            img.set(y, x, color);
+            std::swap(xcopy, y);
         }
-        else
+
+        float val_in_zbuf = get_z_buffer(zbuf, xcopy, y);
+        if (z > val_in_zbuf)
         {
-            img.set(x, y, color);
+            img.set(xcopy, y, color);
+            set_z_buffer(zbuf, xcopy, y, z);
         }
     }
 }
@@ -63,6 +59,7 @@ void render_line (
 
 void render_triangle (
         TGAImage& img,
+        z_buffer& zbuf,
         const TGAColor color,
         vec3 v1,
         vec3 v2,
@@ -85,53 +82,70 @@ void render_triangle (
     auto iv2_3 = iv2 - iv3;
     auto total_height = iv1_3.y;
     auto bottom_segment_height = iv2_3.y;
+    auto dz1_3 = v1.z - v3.z;
+    auto dz2_3 = v2.z - v3.z;
     for (int dy = 0; dy < bottom_segment_height; ++dy)
     {
         auto x0 = origin.x + iv3.x;
+        auto z0 = origin.z + v3.z;
         
         auto t_alpha = (float)dy / total_height;
         auto x_alpha = (int)(x0 + t_alpha * iv1_3.x);
+        auto z_alpha = z0 + t_alpha * dz1_3;
 
         auto t_beta = (float)dy / bottom_segment_height;
         auto x_beta = (int)(x0 + t_beta * iv2_3.x);
+        auto z_beta = z0 + t_beta * dz2_3;
 
         if (x_alpha > x_beta)
         {
             std::swap(x_alpha, x_beta);
+            std::swap(z_alpha, z_beta);
         }
         auto y = dy + iv3.y + (int)origin.y;
-        render_line(img, color, {x_alpha, y, 0}, {x_beta, y, 0}); 
+        render_line(img, zbuf, color, {x_alpha, y, z_alpha},
+                {x_beta, y, z_beta}); 
     }
 
     auto iv1_2 = iv1 - iv2;
     auto final_segment_height = iv1_2.y;
+    auto dz1_2 = v1.z - v2.z;
     for (int dy = 0; dy < final_segment_height; ++dy)
     {
         auto alpha0 = origin.x + iv3.x;
+        auto alpha_z0 = origin.z + v3.z;
         auto beta0 = origin.x + iv2.x;
+        auto beta_z0 = origin.z + v2.z;
         
         auto t_alpha = (float)(dy + bottom_segment_height) / total_height;
         auto x_alpha = (int)(alpha0 + t_alpha * iv1_3.x);
+        auto z_alpha = alpha_z0 + t_alpha * dz1_3;
 
         auto t_beta = (float)dy / final_segment_height;
         auto x_beta = (int)(beta0 + t_beta * iv1_2.x);
+        auto z_beta = beta_z0 + t_beta * dz1_2;
 
         if (x_alpha > x_beta)
         {
             std::swap(x_alpha, x_beta);
+            std::swap(z_alpha, z_beta);
         }
         auto y = bottom_segment_height + dy + iv3.y + (int)origin.y;
-        render_line(img, color, {x_alpha, y, 0}, {x_beta, y, 0}); 
+        render_line(img, zbuf, color, {x_alpha, y, z_alpha},
+                {x_beta, y, z_beta}); 
     }
 
-    render_line(img, black, v1, v2, scale, origin);
-    render_line(img, black, v2, v3, scale, origin);
-    render_line(img, black, v1, v3, scale, origin);
+    /*
+    render_line(img, zbuf, black, v1, v2, scale, origin);
+    render_line(img, zbuf, black, v2, v3, scale, origin);
+    render_line(img, zbuf, black, v1, v3, scale, origin);
+    */
 }
 
 
 void render_model (
         TGAImage& img,
+        z_buffer& zbuf,
         const model& model,
         const vec3 scale,
         const vec3 origin)
@@ -160,7 +174,7 @@ void render_model (
         {
             auto normal_color = TGAColor(255 * brightness, 255 * brightness,
                     255 * brightness, 255);
-            render_triangle(img, normal_color, v0, v1, v2, scale, origin);
+            render_triangle(img, zbuf, normal_color, v0, v1, v2, scale, origin);
         }
     }
 }
