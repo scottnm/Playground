@@ -152,6 +152,7 @@ void render_model (
 {
     using glm::acos;
     using glm::dot;
+    using glm::cross;
 
     int i = 0;
     for (auto& face : model.faces)
@@ -160,11 +161,19 @@ void render_model (
         auto v1 = model.verts[face.vi[1]];
         auto v2 = model.verts[face.vi[2]];
 
+        /* TODO (scott): decide if I want to get face normal from vert norms
         auto vn0 = model.vert_norms[face.vni[0]];
         auto vn1 = model.vert_norms[face.vni[1]];
         auto vn2 = model.vert_norms[face.vni[2]];
 
         auto face_normal = (vn0 + vn1 + vn2) / 3.0f;
+        */
+        
+        auto v1_0 = v1 - v0;
+        auto v2_1 = v2 - v1;
+        auto face_normal = glm::cross(v1_0, v2_1);
+
+
         auto to_camera_vector = vec3(0, 0, 1);
         auto angle_between = acos(dot(to_camera_vector, face_normal) /
                 glm::length(face_normal));
