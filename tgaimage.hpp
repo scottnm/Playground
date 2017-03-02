@@ -60,6 +60,13 @@ struct TGAColor
 		}
 		return *this;
 	}
+    
+    void scale(float s)
+    {
+        r *= s;
+        g *= s;
+        b *= s;
+    }
 };
 
 
@@ -90,6 +97,7 @@ public:
 	bool flip_vertically();
 	bool scale(int w, int h);
 	TGAColor get(int x, int y);
+	TGAColor get_from_ratio(float x, float y);
 	bool set(int x, int y, TGAColor c);
 	~TGAImage();
 	TGAImage & operator =(const TGAImage &img);

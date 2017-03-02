@@ -325,6 +325,17 @@ TGAColor TGAImage::get(int x, int y)
 	return TGAColor(data+(x+y*width)*bytespp, bytespp);
 }
 
+TGAColor TGAImage::get_from_ratio(float x, float y)
+{
+	if (!data || x<0 || y<0 || x>=width || y>=height)
+    {
+		return TGAColor();
+	}
+    int xi = x * width;
+    int yi = y * height;
+	return TGAColor(data+(xi+yi*width)*bytespp, bytespp);
+}
+
 bool TGAImage::set(int x, int y, TGAColor c)
 {
 	if (!data || x<0 || y<0 || x>=width || y>=height)

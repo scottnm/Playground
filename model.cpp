@@ -11,6 +11,7 @@ std::unique_ptr<model> load_model(const string& file)
 {
     const static string VERTEX_KEY("v");
     const static string VERTEX_NORM_KEY("vn");
+    const static string VERTEX_TEXTURE_KEY("vt");
     const static string FACE_KEY("f");
 
     auto model_ptr = std::make_unique<model>();
@@ -34,6 +35,12 @@ std::unique_ptr<model> load_model(const string& file)
             float x, y, z;
             line >> x >> y >> z;
             model_ptr->vert_norms.push_back(glm::vec3(x, y, z));
+        }
+        else if (linetype == VERTEX_TEXTURE_KEY)
+        {
+            float u, v;
+            line >> u >> v;
+            model_ptr->text_verts.push_back(glm::vec2(u, v));
         }
         else if(linetype == FACE_KEY)
         {

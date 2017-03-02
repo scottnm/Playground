@@ -1,6 +1,7 @@
 #ifndef __MODEL_H__
 #define __MODEL_H__
 
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <memory>
 #include <string>
@@ -18,6 +19,7 @@ typedef struct
 {
     std::vector<glm::vec3> verts;
     std::vector<glm::vec3> vert_norms;
+    std::vector<glm::vec2> text_verts;
     std::vector<face> faces;
 } model;
 

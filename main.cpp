@@ -15,13 +15,15 @@ int main(int argc, char** argv)
     const int window_height = 1000;
 
     TGAImage image(window_width, window_height, TGAImage::RGB);
+    TGAImage tex;
+    tex.read_tga_file("obj/african_head/diffuse.tga");
+    tex.flip_vertically();
     z_buffer zbuf(window_width, window_height);
 
-    auto file = std::string("obj/") + std::string(argv[1]) + std::string(".obj");
-    auto model_ptr = load_model(file);
+    auto model_ptr = load_model("obj/african_head/model.obj");
 
     auto starttime = high_resolution_clock::now();
-    render_model(image, zbuf, *model_ptr,
+    render_model(image, tex, zbuf, *model_ptr,
             glm::vec3 {window_width / 2, window_height / 2, 1},
             glm::vec3 {window_width / 2, window_height / 2, 0});
     auto endtime = high_resolution_clock::now();
