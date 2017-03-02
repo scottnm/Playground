@@ -45,13 +45,14 @@ void render_line (
         if (transposed)
         {
             std::swap(xcopy, y);
+            std::swap(uv[0], uv[1]);
         }
 
-        auto color = tex.get_from_ratio(uv[0], uv[1]);
-        color.scale(brightness);
         float val_in_zbuf = get_z_buffer(zbuf, xcopy, y);
         if (z > val_in_zbuf)
         {
+            auto color = tex.get_from_ratio(uv[0], uv[1]);
+            color.scale(brightness);
             img.set(xcopy, y, color);
             set_z_buffer(zbuf, xcopy, y, z);
         }
@@ -78,14 +79,11 @@ void render_triangle (
         const vec3 origin)
 {
     // bubble sort input verts so that v1 > v2 > v3 in y axis
-    vec3 bv1 = {1, 0, 0};
-    vec3 bv2 = {0, 1, 0};
-    vec3 bv3 = {0, 0, 1};
 
     using std::swap;
-    if (v3.y > v2.y) { swap(v2, v3); swap(bv2, bv3); swap(vt2, vt3); }
-    if (v2.y > v1.y) { swap(v1, v2); swap(bv1, bv2); swap(vt1, vt2); }
-    if (v3.y > v2.y) { swap(v2, v3); swap(bv2, bv3); swap(vt2, vt3); }
+    if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); }
+    if (v2.y > v1.y) { swap(v1, v2); swap(vt1, vt2); }
+    if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); }
 
     // scale and convert to int
     auto iv1 = ivec3 { scale.x * v1.x, scale.y * v1.y, scale.z * v1.z };
@@ -99,9 +97,6 @@ void render_triangle (
     auto dz1_3 = v1.z - v3.z;
     auto dz2_3 = v2.z - v3.z;
 
-    auto bv1_3 = bv1 - bv3;
-    auto bv2_3 = bv2 - bv3;
-
     auto total_height = iv1_3.y;
     auto bottom_segment_height = iv2_3.y;
 
@@ -113,14 +108,14 @@ void render_triangle (
         auto t_alpha = (float)dy / total_height;
         auto x_alpha = (int)(x0 + t_alpha * iv1_3.x);
         auto z_alpha = z0 + t_alpha * dz1_3;
-        auto bary_alpha = bv3 + t_alpha * bv1_3;
-        auto texture_alpha = bary_lerp(vt1, vt2, vt3, bary_alpha);
+        auto texture_alpha = bary_lerp(vt1, vt2, vt3, 
+                vec3 {t_alpha, 0, 1 - t_alpha});
 
         auto t_beta = (float)dy / bottom_segment_height;
         auto x_beta = (int)(x0 + t_beta * iv2_3.x);
         auto z_beta = z0 + t_beta * dz2_3;
-        auto bary_beta = bv3 + t_beta * bv2_3;
-        auto texture_beta = bary_lerp(vt1, vt2, vt3, bary_beta);
+        auto texture_beta = bary_lerp(vt1, vt2, vt3,
+                vec3 {0, t_beta, 1 - t_beta});
 
         // TODO (scott): check if unnecessary since the same swap happens in
         // render line
@@ -136,9 +131,8 @@ void render_triangle (
     }
 
     auto iv1_2 = iv1 - iv2;
-    auto final_segment_height = iv1_2.y;
     auto dz1_2 = v1.z - v2.z;
-    auto bv1_2 = bv1 - bv3;
+    auto final_segment_height = iv1_2.y;
     for (int dy = 0; dy < final_segment_height; ++dy)
     {
         auto alpha0 = origin.x + iv3.x;
@@ -149,14 +143,14 @@ void render_triangle (
         auto t_alpha = (float)(dy + bottom_segment_height) / total_height;
         auto x_alpha = (int)(alpha0 + t_alpha * iv1_3.x);
         auto z_alpha = alpha_z0 + t_alpha * dz1_3;
-        auto bary_alpha = bv3 + t_alpha * bv1_3;
-        auto texture_alpha = bary_lerp(vt1, vt2, vt3, bary_alpha);
+        auto texture_alpha = bary_lerp(vt1, vt2, vt3,
+                vec3 {t_alpha, 0, 1 - t_alpha});
 
         auto t_beta = (float)dy / final_segment_height;
         auto x_beta = (int)(beta0 + t_beta * iv1_2.x);
         auto z_beta = beta_z0 + t_beta * dz1_2;
-        auto bary_beta = bv2 + t_beta * bv1_2;
-        auto texture_beta = bary_lerp(vt1, vt2, vt3, bary_beta);
+        auto texture_beta = bary_lerp(vt1, vt2, vt3,
+                vec3 {t_beta, 1 - t_beta, 0});
 
         if (x_alpha > x_beta)
         {

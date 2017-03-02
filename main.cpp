@@ -5,6 +5,10 @@
 #include <cmath>
 #include <chrono>
 
+const static std::string base_dir = "obj/african_head/";
+const static std::string tex_file = base_dir + "diffuse.tga";
+const static std::string obj_file = base_dir + "model.obj";
+
 int main(int argc, char** argv)
 {
     using std::chrono::high_resolution_clock;
@@ -16,11 +20,11 @@ int main(int argc, char** argv)
 
     TGAImage image(window_width, window_height, TGAImage::RGB);
     TGAImage tex;
-    tex.read_tga_file("obj/african_head/diffuse.tga");
+    tex.read_tga_file(tex_file.c_str());
     tex.flip_vertically();
     z_buffer zbuf(window_width, window_height);
 
-    auto model_ptr = load_model("obj/african_head/model.obj");
+    auto model_ptr = load_model(obj_file.c_str());
 
     auto starttime = high_resolution_clock::now();
     render_model(image, tex, zbuf, *model_ptr,
