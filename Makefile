@@ -14,20 +14,15 @@ PROFILE_TARGET = main-profile
 
 OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-exec: $(TARGET)
+all: $(TARGET)
+
+$(OBJECTS): %.o: %.cpp
+	$(CC) -Wall $(CPPFLAGS) -c $(CFLAGS) $< -o $@
 
 .PHONY: $(TARGET)
-$(TARGET):
-	$(CC) $(CPPFLAGS) $(MAIN_SRC) $(COMMON_SRC) -o $(TARGET) $(LIBS)
+$(TARGET): $(OBJECTS)
+	$(CC) $(CPPFLAGS) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBS)
 
-profile: $(PROFILE_TARGET)
-
-$(PROFILE_TARGET):
-	$(CC) $(CPPFLAGS) $(TEST_SRC) $(COMMON_SRC) -o $(PROFILE_TARGET) $(LIBS) $(LDFLAGS)
-	export CPUPROFILE=/tmp/prof.out
-	./$(PROFILE_TARGET)
-	pprof ./$(PROFILE_TARGET) /tmp/prof.out
-  
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)

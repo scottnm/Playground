@@ -3,3 +3,7 @@ main-profile
 output.tga
 output_archive
 .*.*.swp
+*.o
+googletest/
+tests/gtest_main.a
+tests/test

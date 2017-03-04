@@ -40,4 +40,10 @@ void render_model (
         const vec3 scale,
         const vec3 origin);
 
+vec2 bary_lerp(
+        vec2 v0,
+        vec2 v1,
+        vec2 v2,
+        vec3 bary);
+
 #endif 

@@ -59,7 +59,7 @@ void render_line (
     }
 }
 
-static vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
+vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
 {
     return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
 }
@@ -184,7 +184,6 @@ void render_model (
     using glm::dot;
     using glm::cross;
 
-    int i = 0;
     for (auto& face : model.faces)
     {
         auto v0 = model.verts[face.vi[0]];
