@@ -16,9 +16,6 @@
 # Remember to tweak this if you move this file.
 GTEST_DIR = ../googletest/googletest
 
-# Where to find user code.
-USER_DIR = ./
-
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
@@ -76,9 +73,14 @@ src :
 	cd ../ && make
 
 
+TEST_OBJECTS := $(patsubst %.cpp, %.o, $(wildcard test_*.cpp))
+
+$(TEST_OBJECTS): test_%.o: test_%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(CFLAGS) $< -o $@
+
 test.o: $(USER_DIR)/test.cpp $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/test.cpp
 
 
-test: src test.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lm ${TEST_SRC} test.o gtest_main.a -o $@
+test: src $(TEST_OBJECTS) gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lm ${TEST_SRC} $(TEST_OBJECTS) gtest_main.a -o $@
