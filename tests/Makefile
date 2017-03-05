@@ -78,9 +78,5 @@ TEST_OBJECTS := $(patsubst %.cpp, %.o, $(wildcard test_*.cpp))
 $(TEST_OBJECTS): test_%.o: test_%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(CFLAGS) $< -o $@
 
-test.o: $(USER_DIR)/test.cpp $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/test.cpp
-
-
 test: src $(TEST_OBJECTS) gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -lm ${TEST_SRC} $(TEST_OBJECTS) gtest_main.a -o $@
