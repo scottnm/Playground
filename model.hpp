@@ -7,19 +7,23 @@
 #include <string>
 #include <vector>
 
+using glm::ivec3;
+using glm::vec2;
+using glm::vec3;
+
 typedef struct
 {
-    glm::ivec3 vi  = {-1, -1, -1}; // vertex indices
-    glm::ivec3 vti = {-1, -1, -1}; // vertex texture indices
-    glm::ivec3 vni = {-1, -1, -1}; // vertex normal indices
+    ivec3 vi  = {-1, -1, -1}; // vertex indices
+    ivec3 vti = {-1, -1, -1}; // vertex texture indices
+    ivec3 vni = {-1, -1, -1}; // vertex normal indices
 }
 face;
 
 typedef struct
 {
-    std::vector<glm::vec3> verts;
-    std::vector<glm::vec3> vert_norms;
-    std::vector<glm::vec2> text_verts;
+    std::vector<vec3> verts;
+    std::vector<vec3> vert_norms;
+    std::vector<vec2> text_verts;
     std::vector<face> faces;
 } model;
 
