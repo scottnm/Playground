@@ -46,4 +46,8 @@ vec2 bary_lerp(
         vec2 v2,
         vec3 bary);
 
+vec3 project_coord(
+        float c,
+        vec3 v);
+
 #endif 

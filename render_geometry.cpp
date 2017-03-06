@@ -2,6 +2,19 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+static const auto camera_dist = 3.0f;
+
+vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
+{
+    return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
+}
+
+vec3 project_coord(float c, vec3 v)
+{
+    return v / (1 - (v.z / c));
+}
+
+
 void render_line (
         TGAImage& img,
         TGAImage& tex,
@@ -48,20 +61,15 @@ void render_line (
             std::swap(uv[0], uv[1]);
         }
 
-        float val_in_zbuf = get_z_buffer(zbuf, xcopy, y);
+        float val_in_zbuf = zbuf.get(xcopy, y);
         if (z > val_in_zbuf)
         {
             auto color = tex.get_from_ratio(uv[0], uv[1]);
             color.scale(brightness);
             img.set(xcopy, y, color);
-            set_z_buffer(zbuf, xcopy, y, z);
+            zbuf.set(xcopy, y, z);
         }
     }
-}
-
-vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
-{
-    return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
 }
 
 void render_triangle (
@@ -201,11 +209,16 @@ void render_model (
             (glm::half_pi<double>() - angle_between) / glm::half_pi<double>();
         if (brightness > 0)
         {
+            auto pv0 = project_coord(camera_dist, v0);
+            auto pv1 = project_coord(camera_dist, v1);
+            auto pv2 = project_coord(camera_dist, v2);
+
             auto vt0 = model.text_verts[face.vti[0]];
             auto vt1 = model.text_verts[face.vti[1]];
             auto vt2 = model.text_verts[face.vti[2]];
-            render_triangle(img, tex, brightness, zbuf, v0, v1, v2, vt0, vt1,
-                    vt2, scale, origin);
+
+            render_triangle(img, tex, brightness, zbuf, pv0, pv1, pv2,
+                    vt0, vt1, vt2, scale, origin);
         }
     }
 }

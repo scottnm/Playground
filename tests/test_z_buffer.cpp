@@ -12,7 +12,7 @@ TEST(ZBufferTests, ZBuffer_Test_Init)
         for (int y = 0; y < h; ++y)
         {
             EXPECT_EQ(expected_value,
-                    get_z_buffer(test_buffer, x, y));
+                    test_buffer.get(x, y));
         }
     }
 }
@@ -23,8 +23,8 @@ TEST(ZBufferTests, ZBuffer_Test_Random_Elem)
     auto h = 10;
     z_buffer test_buffer(w, h);
     
-    set_z_buffer(test_buffer, 2, 2, 1.5f);
-    EXPECT_EQ(get_z_buffer(test_buffer, 2, 2), 1.5f);
-    EXPECT_EQ(get_z_buffer(test_buffer, 3, 2),
+    test_buffer.set(2, 2, 1.5f);
+    EXPECT_EQ(test_buffer.get(2, 2), 1.5f);
+    EXPECT_EQ(test_buffer.get(3, 2),
             std::numeric_limits<float>::lowest());
 }
