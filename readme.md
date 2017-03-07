@@ -18,31 +18,31 @@ I plan to implement each once in Python and once in Rust.
 * Display sort timing visualization using Flask and Numpy
 
 ### Python
-- [] Quick
-- [] Merge
-- [] Tim
-- [] Heap
-- [] Bubble
-- [] Insertion
-- [] Selection
-- [] Tree
-- [] Shell
-- [] Bucket
-- [] Radix
-- [] Counting
-- [] Cube
+- [ ] Quick
+- [ ] Merge
+- [ ] Tim
+- [ ] Heap
+- [ ] Bubble
+- [ ] Insertion
+- [ ] Selection
+- [ ] Tree
+- [ ] Shell
+- [ ] Bucket
+- [ ] Radix
+- [ ] Counting
+- [ ] Cube
 
 ### Rust
-- [] Quick
-- [] Merge
-- [] Tim
-- [] Heap
-- [] Bubble
-- [] Insertion
-- [] Selection
-- [] Tree
-- [] Shell
-- [] Bucket
-- [] Radix
-- [] Counting
-- [] Cube
+- [ ] Quick
+- [ ] Merge
+- [ ] Tim
+- [ ] Heap
+- [ ] Bubble
+- [ ] Insertion
+- [ ] Selection
+- [ ] Tree
+- [ ] Shell
+- [ ] Bucket
+- [ ] Radix
+- [ ] Counting
+- [ ] Cube
