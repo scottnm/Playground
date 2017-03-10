@@ -19,4 +19,12 @@ def bubble(__seq : List[T], *, \
 
 def selection(__seq : List[T], *, \
               out_of_order : Callable[[T, T], bool] = operator.gt) -> List[T]:
-    return []
+    seq = __seq[:]
+    for unsorted_mark in range(0, len(__seq) - 1):
+        min_index = unsorted_mark
+        for i in range(unsorted_mark + 1, len(__seq)):
+            if out_of_order(seq[min_index], seq[i]):
+                min_index = i
+        seq[unsorted_mark], seq[min_index] = seq[min_index], seq[unsorted_mark]
+    return seq
+
