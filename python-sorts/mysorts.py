@@ -17,4 +17,6 @@ def bubble(__seq : List[T], *, \
             break
     return seq
 
-    
+def selection(__seq : List[T], *, \
+              out_of_order : Callable[[T, T], bool] = operator.gt) -> List[T]:
+    return []
