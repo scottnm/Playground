@@ -28,3 +28,8 @@ def selection(__seq : List[T], *, \
         seq[unsorted_mark], seq[min_index] = seq[min_index], seq[unsorted_mark]
     return seq
 
+def insertion(__seq : List[T], *, \
+              out_of_order : Callable[[T, T], bool] = operator.gt) -> List[T]:
+    seq = __seq[:]
+    return seq
+

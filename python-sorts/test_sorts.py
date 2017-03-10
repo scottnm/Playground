@@ -7,7 +7,7 @@ import unittest
 
 class TestSorts(unittest.TestCase):
     # sorts go here
-    sorts = [bubble, selection]
+    sorts = [bubble, selection, insertion]
 
     def sort_test(self, input, expected_output):
         preserved_input = input[:]
