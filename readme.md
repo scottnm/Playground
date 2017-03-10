@@ -23,7 +23,7 @@ I plan to implement each once in Python and once in Rust.
 - [ ] Tim
 - [ ] Heap
 - [x] Bubble
-- [ ] Insertion
+- [x] Insertion
 - [x] Selection
 - [ ] Tree
 - [ ] Shell
