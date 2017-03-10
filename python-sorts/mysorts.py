@@ -31,5 +31,14 @@ def selection(__seq : List[T], *, \
 def insertion(__seq : List[T], *, \
               out_of_order : Callable[[T, T], bool] = operator.gt) -> List[T]:
     seq = __seq[:]
+    for unsorted_mark in range(1, len(__seq)):
+        ele = seq[unsorted_mark]
+        insert_pos = 0
+        for i in range(unsorted_mark - 1, -1, -1):
+            if out_of_order(seq[i], ele):
+                seq[i + 1] = seq[i]
+            else:
+                insert_pos = i + 1
+                break
+        seq[insert_pos] = ele
     return seq
-
