@@ -7,7 +7,7 @@ import unittest
 
 class TestSorts(unittest.TestCase):
     # sorts go here
-    sorts = [bubble]
+    sorts = [bubble, selection]
 
     def test_simple_presorted(self):
         input = [i for i in range(1, 5)]
@@ -15,7 +15,7 @@ class TestSorts(unittest.TestCase):
         expected_output = input[:]
         assert input is not expected_output
         for sort_func in TestSorts.sorts:
-            with self.subTest():
+            with self.subTest(msg=sort_func.__name__):
                 self.assertEqual(expected_output, sort_func(input))
                 self.assertEqual(input, preserved_input) # assert no mutation
 
@@ -24,7 +24,7 @@ class TestSorts(unittest.TestCase):
         preserved_input = input[:]
         expected_output = [i for i in range(1, 5)]
         for sort_func in TestSorts.sorts:
-            with self.subTest():
+            with self.subTest(msg=sort_func.__name__):
                 self.assertEqual(expected_output, sort_func(input))
                 self.assertEqual(input, preserved_input) # assert no mutation
 
@@ -33,7 +33,7 @@ class TestSorts(unittest.TestCase):
         preserved_input = input[:]
         expected_output = [i for i in range(0, 10)]
         for sort_func in TestSorts.sorts:
-            with self.subTest():
+            with self.subTest(msg=sort_func.__name__):
                 self.assertEqual(expected_output, sort_func(input))
                 self.assertEqual(input, preserved_input) # assert no mutation
 
