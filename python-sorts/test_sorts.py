@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-from sorts import *
+from mysorts import *
 import unittest
 
 class TestSorts(unittest.TestCase):
