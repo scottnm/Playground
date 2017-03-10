@@ -22,9 +22,9 @@ I plan to implement each once in Python and once in Rust.
 - [ ] Merge
 - [ ] Tim
 - [ ] Heap
-- [ ] Bubble
+- [x] Bubble
 - [ ] Insertion
-- [ ] Selection
+- [x] Selection
 - [ ] Tree
 - [ ] Shell
 - [ ] Bucket
