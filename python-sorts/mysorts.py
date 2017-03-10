@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import operator
-from typing import Any, List, Callable
+from typing import Any, Callable, List, TypeVar
+T = TypeVar('T')
 
-def bubble(__seq : List[Any], *, \
-           out_of_order : Callable = operator.gt) -> List[Any]:
+def bubble(__seq : List[T], *, \
+           out_of_order : Callable[[T, T], bool] = operator.gt) -> List[T]:
     seq = __seq[:]
     for unsorted_range in range(len(__seq), 0, -1):
         already_sorted = True
