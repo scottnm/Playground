@@ -18,7 +18,7 @@ I plan to implement each once in Python and once in Rust.
 * Display sort timing visualization using Flask and Numpy
 
 ### Python
-- [ ] Quick
+- [x] Quick
 - [ ] Merge
 - [ ] Tim
 - [ ] Heap
