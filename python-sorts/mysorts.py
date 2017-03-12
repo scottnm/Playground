@@ -44,7 +44,7 @@ def insertion(__seq : List[T], *, \
         seq[insert_pos] = ele
     return seq
 
-def quick_1(__seq : List[T], *, \
+def quick_inplace(__seq : List[T], *, \
           order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
 
     seq = __seq[:]
@@ -122,7 +122,7 @@ def quick_1(__seq : List[T], *, \
         sublist_stack.append((pivot_final+1, sublist[1]))
     return seq
 
-def quick_2(__seq : List[T], *, \
+def quick(__seq : List[T], *, \
           order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
     if len(__seq) < 2:
         return __seq
@@ -145,5 +145,5 @@ def quick_2(__seq : List[T], *, \
         else:
             le_sublist.append(ele)
 
-    return quick_2(le_sublist, order_gt=order_gt) + [pivot_ele] + \
-            quick_2(gt_sublist, order_gt=order_gt)
+    return quick(le_sublist, order_gt=order_gt) + [pivot_ele] + \
+            quick(gt_sublist, order_gt=order_gt)
