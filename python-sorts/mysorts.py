@@ -124,4 +124,26 @@ def quick_1(__seq : List[T], *, \
 
 def quick_2(__seq : List[T], *, \
           comp_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
-    return []
+    if len(__seq) < 2:
+        return __seq
+
+    pivot = len(__seq) // 2
+    pivot_ele = __seq[pivot]
+    le_sublist = []
+    gt_sublist = []
+
+    for i in range(0, pivot):
+        ele = __seq[i]
+        if comp_gt(ele, pivot_ele):
+            gt_sublist.append(ele)
+        else:
+            le_sublist.append(ele)
+    for i in range(pivot+1, len(__seq)):
+        ele = __seq[i]
+        if comp_gt(ele, pivot_ele):
+            gt_sublist.append(ele)
+        else:
+            le_sublist.append(ele)
+
+    return quick_2(le_sublist, comp_gt=comp_gt) + [pivot_ele] + \
+            quick_2(gt_sublist, comp_gt=comp_gt)
