@@ -8,7 +8,7 @@ import operator
 
 class TestSorts(unittest.TestCase):
     # sorts go here
-    sorts = [bubble, selection, insertion, quick_inplace, quick]
+    sorts = [bubble, selection, insertion, quick_inplace, quick, merge]
 
     def sort_test(self, input, expected_output, order_gt=operator.gt):
         preserved_input = input[:]

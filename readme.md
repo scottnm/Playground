@@ -19,7 +19,7 @@ I plan to implement each once in Python and once in Rust.
 
 ### Python
 - [x] Quick
-- [ ] Merge
+- [x] Merge
 - [ ] Tim
 - [ ] Heap
 - [x] Bubble

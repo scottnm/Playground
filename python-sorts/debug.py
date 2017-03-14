@@ -3,4 +3,4 @@
 import mysorts
 import pdb
 
-pdb.run('mysorts.quick_1([4,3,2,1])')
+pdb.run('mysorts.merge([4,3,2,1])')

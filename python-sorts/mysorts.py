@@ -147,3 +147,36 @@ def quick(__seq : List[T], *, \
 
     return quick(le_sublist, order_gt=order_gt) + [pivot_ele] + \
             quick(gt_sublist, order_gt=order_gt)
+
+def merge(__seq : List[T], *, \
+          order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+    if len(__seq) < 2:
+        return __seq
+
+    mid = len(__seq) // 2
+    left_sublist = merge(__seq[:mid], order_gt=order_gt)
+    right_sublist = merge(__seq[mid:], order_gt=order_gt)
+    merge_list = [None] * (len(left_sublist) + len(right_sublist))  # type: List[T]
+
+    left_i = 0
+    right_i = 0
+
+    while left_i < len(left_sublist) and right_i < len(right_sublist):
+        left_ele = left_sublist[left_i]
+        right_ele = right_sublist[right_i]
+
+        if order_gt(right_ele, left_ele):
+            merge_list[left_i + right_i] = left_ele
+            left_i += 1
+        else:
+            merge_list[left_i + right_i] = right_ele
+            right_i += 1
+    if left_i < len(left_sublist):
+        for i in range(left_i, len(left_sublist)):
+            merge_list[i + right_i] = left_sublist[i]
+    else:
+        for i in range(right_i, len(right_sublist)):
+            merge_list[left_i + i] = right_sublist[i]
+
+    return merge_list
+    
