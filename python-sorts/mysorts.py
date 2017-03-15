@@ -1,12 +1,11 @@
 
 #!/usr/bin/env python3
 
-import operator
+from operator import gt
 from typing import Any, Callable, List, TypeVar
 T = TypeVar('T')
 
-def bubble(__seq : List[T], *, \
-           order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+def bubble(__seq: List[T], order_gt: Callable[[T, T], bool] = gt) -> List[T]:
     seq = __seq[:]
     for unsorted_range in range(len(__seq), 0, -1):
         already_sorted = True
@@ -18,8 +17,7 @@ def bubble(__seq : List[T], *, \
             break
     return seq
 
-def selection(__seq : List[T], *, \
-              order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+def selection(__seq: List[T], order_gt: Callable[[T, T], bool] = gt) -> List[T]:
     seq = __seq[:]
     for unsorted_mark in range(0, len(__seq) - 1):
         min_index = unsorted_mark
@@ -29,8 +27,7 @@ def selection(__seq : List[T], *, \
         seq[unsorted_mark], seq[min_index] = seq[min_index], seq[unsorted_mark]
     return seq
 
-def insertion(__seq : List[T], *, \
-              order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+def insertion(__seq: List[T], order_gt: Callable[[T, T], bool] = gt) -> List[T]:
     seq = __seq[:]
     for unsorted_mark in range(1, len(__seq)):
         ele = seq[unsorted_mark]
@@ -44,8 +41,8 @@ def insertion(__seq : List[T], *, \
         seq[insert_pos] = ele
     return seq
 
-def quick_inplace(__seq : List[T], *, \
-          order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+# O(n) space complexity
+def quick_nspace(__seq: List[T], order_gt: Callable[[T, T], bool] = gt) -> List[T]:
 
     seq = __seq[:]
     sublist_stack = [(0, len(__seq))] 
@@ -122,8 +119,8 @@ def quick_inplace(__seq : List[T], *, \
         sublist_stack.append((pivot_final+1, sublist[1]))
     return seq
 
-def quick(__seq : List[T], *, \
-          order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+def quick_nlognspace(__seq: List[T],
+                    order_gt: Callable[[T, T], bool] = gt) -> List[T]:
     if len(__seq) < 2:
         return __seq
 
@@ -145,11 +142,10 @@ def quick(__seq : List[T], *, \
         else:
             le_sublist.append(ele)
 
-    return quick(le_sublist, order_gt=order_gt) + [pivot_ele] + \
-            quick(gt_sublist, order_gt=order_gt)
+    return quick_nlognspace(le_sublist, order_gt=order_gt) + [pivot_ele] + \
+            quick_nlognspace(gt_sublist, order_gt=order_gt)
 
-def merge(__seq : List[T], *, \
-          order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+def merge(__seq: List[T], order_gt: Callable[[T, T], bool] = gt) -> List[T]:
     if len(__seq) < 2:
         return __seq
 
@@ -180,8 +176,7 @@ def merge(__seq : List[T], *, \
 
     return merge_list
     
-def heapy(__seq : List[T], *, \
-          order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+def heapy(__seq: List[T], order_gt : Callable[[T, T], bool] = gt) -> List[T]:
 
     seq = __seq[:]
     def heapify(seq: List[T], hsize: int, i: int, order_gt: Callable[[T,T], bool]):
@@ -209,3 +204,6 @@ def heapy(__seq : List[T], *, \
         heapify(seq, heap_size, 0, order_gt)
 
     return seq
+
+def tim(__seq: List[T], order_gt: Callable[[T, T], bool] = gt) -> List[T]:
+    return []
