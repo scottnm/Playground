@@ -21,7 +21,7 @@ I plan to implement each once in Python and once in Rust.
 - [x] Quick
 - [x] Merge
 - [ ] Tim
-- [ ] Heap
+- [x] Heap
 - [x] Bubble
 - [x] Insertion
 - [x] Selection

@@ -180,3 +180,32 @@ def merge(__seq : List[T], *, \
 
     return merge_list
     
+def heapy(__seq : List[T], *, \
+          order_gt : Callable[[T, T], bool] = operator.gt) -> List[T]:
+
+    seq = __seq[:]
+    def heapify(seq: List[T], hsize: int, i: int, order_gt: Callable[[T,T], bool]):
+        l = 2 * i + 1
+        largest = l if l < hsize and order_gt(seq[l], seq[i]) else i
+
+        r = 2 * i + 2
+        if r < hsize and order_gt(seq[r], seq[largest]):
+            largest = r
+
+        if largest != i:
+            seq[i], seq[largest] = seq[largest], seq[i]
+            heapify(seq, hsize, largest, order_gt)
+
+    def build_heap(seq: List[T], order_gt: Callable[[T,T], bool]):
+        for i in range(len(seq) // 2 - 1, -1, -1):
+            heapify(seq, len(seq), i, order_gt)
+
+    build_heap(seq, order_gt)
+
+    heap_size = len(seq)
+    for i in range(len(seq) - 1, 0, -1):
+        seq[0], seq[i] = seq[i], seq[0]
+        heap_size -= 1 
+        heapify(seq, heap_size, 0, order_gt)
+
+    return seq
