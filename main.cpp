@@ -1,6 +1,7 @@
 #include "render_geometry.hpp"
 #include "model.hpp"
 #include "tgaimage.hpp"
+#include "viewmatrix.hpp"
 #include "z_buffer.hpp"
 #include <cmath>
 #include <chrono>
@@ -15,8 +16,9 @@ int main(int argc, char** argv)
     using std::chrono::duration;
     using std::chrono::duration_cast;
 
-    const int window_width = 1000;
-    const int window_height = 1000;
+    const auto window_width = 1000;
+    const auto window_height = 1000;
+    const auto camera_distance = 3.0f;
 
     TGAImage image(window_width, window_height, TGAImage::RGB);
     TGAImage tex;

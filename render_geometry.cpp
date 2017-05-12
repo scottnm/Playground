@@ -2,8 +2,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
-static const auto camera_dist = 3.0f;
-
 vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
 {
     return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
@@ -87,7 +85,6 @@ void render_triangle (
         const vec3 origin)
 {
     // bubble sort input verts so that v1 > v2 > v3 in y axis
-
     using std::swap;
     if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); }
     if (v2.y > v1.y) { swap(v1, v2); swap(vt1, vt2); }
@@ -209,9 +206,9 @@ void render_model (
             (glm::half_pi<double>() - angle_between) / glm::half_pi<double>();
         if (brightness > 0)
         {
-            auto pv0 = project_coord(camera_dist, v0);
-            auto pv1 = project_coord(camera_dist, v1);
-            auto pv2 = project_coord(camera_dist, v2);
+            auto pv0 = project_coord(3, v0);
+            auto pv1 = project_coord(3, v1);
+            auto pv2 = project_coord(3, v2);
 
             auto vt0 = model.text_verts[face.vti[0]];
             auto vt1 = model.text_verts[face.vti[1]];
