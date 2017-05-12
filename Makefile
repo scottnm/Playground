@@ -1,18 +1,9 @@
-CC           = g++
-CPPFLAGS     = -std=c++14 -g
-LDFLAGS      = -lprofiler
-LIBS         = -lm
-MAIN_SRC     = main.cpp
-TEST_SRC     = profile-test.cpp
-COMMON_SRC   = render_geometry.cpp \
-			   model.cpp \
-			   tgaimage.cpp
-
-DESTDIR = ./
-TARGET  = main
-PROFILE_TARGET = main-profile
-
-OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+CC       := g++
+CPPFLAGS := -std=c++14 -g
+LDFLAGS  := -lprofiler
+LIBS     := -lm
+TARGET   := main
+OBJECTS  := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 all: $(TARGET)
 
@@ -26,6 +17,5 @@ $(TARGET): $(OBJECTS)
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
-	-rm -f $(PROFILE_TARGET)
 	-rm -f *.tga
 
