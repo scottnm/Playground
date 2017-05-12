@@ -9,9 +9,10 @@ glm::mat4 perspective_proj_xform(float camera_distance)
              0, 0, 0, 1 };
 }
 
-glm::mat4 screenspace_xform(int w, int h)
+glm::mat4 screenspace_xform(int sw, int sh, int xs, int ys)
 {
-    assert(false);
-    glm::mat4 a;
-    return a;
+    return { xs / 2,      0, 0, 0,
+                  0, ys / 2, 0, 0,
+                  0,      0, 1, 0,
+             sw / 2, sh / 2, 0, 1 };
 }

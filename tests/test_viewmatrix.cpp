@@ -39,8 +39,20 @@ TEST(ViewMatrixTests, TestProjectionMatrix2)
 
 TEST(ViewMatrixTests, TestScreenspaceMatrix1)
 {
+    auto m = screenspace_xform(100, 100, 100, 100);
+    auto exp = glm::mat4(50,  0, 0, 0,
+                          0, 50, 0, 0,
+                          0,  0, 1, 0,
+                         50, 50, 0, 1);
+    EXPECT_EQ(m, exp);
 }
 
 TEST(ViewMatrixTests, TestScreenspaceMatrix2)
 {
+    auto m = screenspace_xform(1920, 1080, 100, 100);
+    auto exp = glm::mat4( 50,   0, 0, 0,
+                           0,  50, 0, 0,
+                           0,   0, 1, 0,
+                         960, 540, 0, 1);
+    EXPECT_EQ(m, exp);
 }
