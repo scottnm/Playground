@@ -1,17 +1,16 @@
 #include "render_geometry.hpp"
+#include "viewmatrix.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/vec4.hpp>
+
+static glm::vec3 get_face_normal(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2);
+static double orientation_to_brightness(glm::vec3 face_normal);
 
 vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
 {
     return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
 }
-
-vec3 project_coord(float c, vec3 v)
-{
-    return v / (1 - (v.z / c));
-}
-
 
 void render_line (
         TGAImage& img,
@@ -80,9 +79,7 @@ void render_triangle (
         vec3 v3,
         vec2 vt1,
         vec2 vt2,
-        vec2 vt3,
-        const vec3 scale,
-        const vec3 origin)
+        vec2 vt3)
 {
     // bubble sort input verts so that v1 > v2 > v3 in y axis
     using std::swap;
@@ -90,10 +87,10 @@ void render_triangle (
     if (v2.y > v1.y) { swap(v1, v2); swap(vt1, vt2); }
     if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); }
 
-    // scale and convert to int
-    auto iv1 = ivec3 { scale.x * v1.x, scale.y * v1.y, scale.z * v1.z };
-    auto iv2 = ivec3 { scale.x * v2.x, scale.y * v2.y, scale.z * v2.z };
-    auto iv3 = ivec3 { scale.x * v3.x, scale.y * v3.y, scale.z * v3.z };
+    // convert to int
+    glm::ivec3 iv1 = v1;
+    glm::ivec3 iv2 = v2;
+    glm::ivec3 iv3 = v3;
 
     // loop over bottom segment 0 -> y drawing horizontal lines
     auto iv1_3 = iv1 - iv3;
@@ -107,8 +104,8 @@ void render_triangle (
 
     for (int dy = 0; dy < bottom_segment_height; ++dy)
     {
-        auto x0 = origin.x + iv3.x;
-        auto z0 = origin.z + v3.z;
+        auto x0 = iv3.x;
+        auto z0 = v3.z;
         
         auto t_alpha = (float)dy / total_height;
         auto x_alpha = (int)(x0 + t_alpha * iv1_3.x);
@@ -130,7 +127,7 @@ void render_triangle (
             swap(z_alpha, z_beta);
             swap(texture_alpha, texture_beta);
         }
-        auto y = dy + iv3.y + (int)origin.y;
+        auto y = dy + iv3.y;
         render_line(img, tex, brightness, zbuf, {x_alpha, y, z_alpha},
                 {x_beta, y, z_beta}, texture_alpha, texture_beta); 
     }
@@ -140,10 +137,10 @@ void render_triangle (
     auto final_segment_height = iv1_2.y;
     for (int dy = 0; dy < final_segment_height; ++dy)
     {
-        auto alpha0 = origin.x + iv3.x;
-        auto alpha_z0 = origin.z + v3.z;
-        auto beta0 = origin.x + iv2.x;
-        auto beta_z0 = origin.z + v2.z;
+        auto alpha0 = iv3.x;
+        auto alpha_z0 = v3.z;
+        auto beta0 = iv2.x;
+        auto beta_z0 = v2.z;
         
         auto t_alpha = (float)(dy + bottom_segment_height) / total_height;
         auto x_alpha = (int)(alpha0 + t_alpha * iv1_3.x);
@@ -164,58 +161,58 @@ void render_triangle (
             swap(texture_alpha, texture_beta);
         }
 
-        auto y = bottom_segment_height + dy + iv3.y + (int)origin.y;
+        auto y = bottom_segment_height + dy + iv3.y;
         render_line(img, tex, brightness, zbuf, {x_alpha, y, z_alpha},
                 {x_beta, y, z_beta}, texture_alpha, texture_beta); 
     }
-
-    /*
-    render_line(img, zbuf, black, v1, v2, scale, origin);
-    render_line(img, zbuf, black, v2, v3, scale, origin);
-    render_line(img, zbuf, black, v1, v3, scale, origin);
-    */
 }
-
 
 void render_model (
         TGAImage& img,
         TGAImage& tex,
         z_buffer& zbuf,
         const model& model,
-        const vec3 scale,
-        const vec3 origin)
+        const mat4 viewmat)
 {
     using glm::acos;
     using glm::dot;
     using glm::cross;
+    using glm::length;
 
     for (auto& face : model.faces)
     {
         auto v0 = model.verts[face.vi[0]];
         auto v1 = model.verts[face.vi[1]];
         auto v2 = model.verts[face.vi[2]];
-
-        auto v1_0 = v1 - v0;
-        auto v2_1 = v2 - v1;
-        auto face_normal = glm::cross(v1_0, v2_1);
-
-        auto to_camera_vector = vec3(0, 0, 1);
-        auto angle_between = acos(dot(to_camera_vector, face_normal) /
-                glm::length(face_normal));
-        auto brightness = angle_between == 0 ? 1 :
-            (glm::half_pi<double>() - angle_between) / glm::half_pi<double>();
+        auto face_normal = get_face_normal(v0, v1, v2);
+        auto brightness = orientation_to_brightness(face_normal);
         if (brightness > 0)
         {
-            auto pv0 = project_coord(3, v0);
-            auto pv1 = project_coord(3, v1);
-            auto pv2 = project_coord(3, v2);
+            auto pv0 = retroproject(viewmat * glm::vec4(v0, 1));
+            auto pv1 = retroproject(viewmat * glm::vec4(v1, 1));
+            auto pv2 = retroproject(viewmat * glm::vec4(v2, 1));
 
             auto vt0 = model.text_verts[face.vti[0]];
             auto vt1 = model.text_verts[face.vti[1]];
             auto vt2 = model.text_verts[face.vti[2]];
 
-            render_triangle(img, tex, brightness, zbuf, pv0, pv1, pv2,
-                    vt0, vt1, vt2, scale, origin);
+            render_triangle(img, tex, brightness, zbuf,
+                    pv0, pv1, pv2, vt0, vt1, vt2);
         }
     }
+}
+
+static glm::vec3 get_face_normal(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
+{
+    auto v1_0 = v1 - v0;
+    auto v2_1 = v2 - v1;
+    return glm::cross(v1_0, v2_1);
+}
+
+static double orientation_to_brightness(glm::vec3 face_normal)
+{
+    static const auto half_pi = glm::half_pi<double>();
+    static const auto to_cam = glm::vec3(0, 0, 1);
+    auto angle_between = acos(dot(to_cam, face_normal) / length(face_normal));
+    return angle_between == 0 ? 1 : (half_pi - angle_between) / half_pi;
 }

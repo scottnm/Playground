@@ -16,3 +16,8 @@ glm::mat4 screenspace_xform(int sw, int sh, int xs, int ys)
                   0,      0, 1, 0,
              sw / 2, sh / 2, 0, 1 };
 }
+
+glm::vec3 retroproject(glm::vec4 v)
+{
+    return v / v.w;
+}

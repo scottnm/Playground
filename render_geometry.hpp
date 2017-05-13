@@ -4,8 +4,10 @@
 #include "model.hpp"
 #include "tgaimage.hpp"
 #include "z_buffer.hpp"
+#include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
+using glm::mat4;
 using glm::ivec3;
 using glm::vec3;
 using glm::vec2;
@@ -15,8 +17,10 @@ void render_line (
         TGAImage& tex,
         float brightness,
         z_buffer& zbuf,
-        vec3 s,
-        vec3 d);
+        vec3 start,
+        vec3 dest,
+        vec2 startuv,
+        vec2 enduv);
 
 void render_triangle (
         TGAImage& img,
@@ -28,26 +32,19 @@ void render_triangle (
         vec3 v3,
         vec2 vt1,
         vec2 vt2,
-        vec2 vt3,
-        const vec3 scale,
-        const vec3 origin);
+        vec2 vt3);
 
 void render_model (
         TGAImage& img,
         TGAImage& tex,
         z_buffer& zbuf,
         const model& model,
-        const vec3 scale,
-        const vec3 origin);
+        const mat4 viewmat);
 
 vec2 bary_lerp(
         vec2 v0,
         vec2 v1,
         vec2 v2,
         vec3 bary);
-
-vec3 project_coord(
-        float c,
-        vec3 v);
 
 #endif 

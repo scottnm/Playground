@@ -12,4 +12,7 @@ glm::mat4 screenspace_xform(
         int x_scale,
         int y_scale);
 
+glm::vec3 retroproject(
+        glm::vec4 v);
+
 #endif // __VIEWMATRIX_H__
