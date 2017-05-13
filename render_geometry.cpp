@@ -119,14 +119,6 @@ void render_triangle (
         auto texture_beta = bary_lerp(vt1, vt2, vt3,
                 vec3 {0, t_beta, 1 - t_beta});
 
-        // TODO (scott): check if unnecessary since the same swap happens in
-        // render line
-        if (x_alpha > x_beta)
-        {
-            swap(x_alpha, x_beta);
-            swap(z_alpha, z_beta);
-            swap(texture_alpha, texture_beta);
-        }
         auto y = dy + iv3.y;
         render_line(img, tex, brightness, zbuf, {x_alpha, y, z_alpha},
                 {x_beta, y, z_beta}, texture_alpha, texture_beta); 
@@ -153,13 +145,6 @@ void render_triangle (
         auto z_beta = beta_z0 + t_beta * dz1_2;
         auto texture_beta = bary_lerp(vt1, vt2, vt3,
                 vec3 {t_beta, 1 - t_beta, 0});
-
-        if (x_alpha > x_beta)
-        {
-            std::swap(x_alpha, x_beta);
-            std::swap(z_alpha, z_beta);
-            swap(texture_alpha, texture_beta);
-        }
 
         auto y = bottom_segment_height + dy + iv3.y;
         render_line(img, tex, brightness, zbuf, {x_alpha, y, z_alpha},
