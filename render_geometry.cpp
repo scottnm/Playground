@@ -2,9 +2,10 @@
 #include "viewmatrix.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <glm/mat3x3.hpp>
 #include <glm/vec4.hpp>
 
-static glm::vec3 get_face_normal(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2);
+static glm::vec3 get_face_normal(glm::mat3 verts);
 static double orientation_to_brightness(glm::vec3 face_normal);
 
 vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
@@ -166,16 +167,18 @@ void render_model (
 
     for (auto& face : model.faces)
     {
-        auto v0 = model.verts[face.vi[0]];
-        auto v1 = model.verts[face.vi[1]];
-        auto v2 = model.verts[face.vi[2]];
-        auto face_normal = get_face_normal(v0, v1, v2);
+        auto verts = model.get_verts(face);
+        auto face_normal = get_face_normal(verts);
         auto brightness = orientation_to_brightness(face_normal);
         if (brightness > 0)
         {
-            auto pv0 = retroproject(viewmat * glm::vec4(v0, 1));
-            auto pv1 = retroproject(viewmat * glm::vec4(v1, 1));
-            auto pv2 = retroproject(viewmat * glm::vec4(v2, 1));
+            auto pv0 = retroproject(viewmat * glm::vec4(verts[0], 1));
+            auto pv1 = retroproject(viewmat * glm::vec4(verts[1], 1));
+            auto pv2 = retroproject(viewmat * glm::vec4(verts[2], 1));
+
+            /*
+            auto projected_verts = retroproject(viewmat * expand_matrix(verts));
+            */
 
             auto vt0 = model.text_verts[face.vti[0]];
             auto vt1 = model.text_verts[face.vti[1]];
@@ -187,11 +190,11 @@ void render_model (
     }
 }
 
-static glm::vec3 get_face_normal(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
+static glm::vec3 get_face_normal(glm::mat3 face_verts)
 {
-    auto v1_0 = v1 - v0;
-    auto v2_1 = v2 - v1;
-    return glm::cross(v1_0, v2_1);
+    auto side_a = face_verts[1] - face_verts[0];
+    auto side_b = face_verts[2] - face_verts[1];
+    return glm::cross(side_a, side_b);
 }
 
 static double orientation_to_brightness(glm::vec3 face_normal)

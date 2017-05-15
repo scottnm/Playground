@@ -6,6 +6,10 @@ using std::istringstream;
 using std::ifstream;
 using std::string;
 
+mat3 model::get_verts(const face& face) const
+{
+    return mat3(verts[face.vi[0]], verts[face.vi[1]], verts[face.vi[2]]);
+}
 
 std::unique_ptr<model> load_model(const string& file)
 {
