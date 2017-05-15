@@ -6,8 +6,8 @@
 #include <glm/mat3x4.hpp>
 #include <glm/vec4.hpp>
 
-static glm::vec3 get_face_normal(glm::mat3 verts);
-static double orientation_to_brightness(glm::vec3 face_normal);
+static glm::vec3 face_normal(glm::mat3 verts);
+static double face_brightness(glm::mat3x4 verts);
 static glm::mat3x4 expand_matrix(glm::mat3 m);
 
 vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
@@ -170,8 +170,7 @@ void render_model (
     for (auto& face : model.faces)
     {
         auto verts = model.get_verts(face);
-        auto face_normal = get_face_normal(verts);
-        auto brightness = orientation_to_brightness(face_normal);
+        auto brightness = face_brightness(verts);
         if (brightness > 0)
         {
             auto projected_verts = retroproject(viewmat * expand_matrix(verts));
@@ -187,18 +186,20 @@ void render_model (
     }
 }
 
-static glm::vec3 get_face_normal(glm::mat3 face_verts)
+static glm::vec3 face_normal(glm::mat3 face_verts)
 {
     auto side_a = face_verts[1] - face_verts[0];
     auto side_b = face_verts[2] - face_verts[1];
     return glm::cross(side_a, side_b);
 }
 
-static double orientation_to_brightness(glm::vec3 face_normal)
+static double face_brightness(glm::mat3x4 verts)
 {
     static const auto half_pi = glm::half_pi<double>();
     static const auto to_cam = glm::vec3(0, 0, 1);
-    auto angle_between = acos(dot(to_cam, face_normal) / length(face_normal));
+
+    auto normal = face_normal(verts);
+    auto angle_between = acos(dot(to_cam, normal) / length(normal));
     return angle_between == 0 ? 1 : (half_pi - angle_between) / half_pi;
 }
 
