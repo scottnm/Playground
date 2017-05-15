@@ -78,9 +78,10 @@ void render_triangle (
         vec3 vn1, vec3 vn2, vec3 vn3)
 {
     // transform the vertex normals into brightness values
-    auto b1 = normal_to_brightness(vn1);
-    auto b2 = normal_to_brightness(vn2);
-    auto b3 = normal_to_brightness(vn3);
+    // must clamp because vertex normals not guaranteed to face camera
+    auto b1 = glm::clamp(normal_to_brightness(vn1), 0.0, 1.0);
+    auto b2 = glm::clamp(normal_to_brightness(vn2), 0.0, 1.0);
+    auto b3 = glm::clamp(normal_to_brightness(vn3), 0.0, 1.0);
 
     // bubble sort input verts so that v1 > v2 > v3 in y axis
     using std::swap;

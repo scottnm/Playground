@@ -20,8 +20,9 @@ mat3x2 model::get_texture_verts(const face& face) const
 
 mat3 model::get_vertex_normals(const face& face) const
 {
-    auto fnorm = face_normal(get_verts(face));
-    return mat3(fnorm, fnorm, fnorm);
+    return mat3(vert_norms[face.vni[0]],
+                vert_norms[face.vni[1]],
+                vert_norms[face.vni[2]]);
 }
 
 std::unique_ptr<model> load_model(const string& file)
