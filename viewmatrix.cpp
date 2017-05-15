@@ -19,8 +19,8 @@ glm::mat4 screenspace_xform(int sw, int sh, int xs, int ys)
 
 glm::mat3 retroproject(glm::mat3x4 m)
 {
-    m[0] = m[0] / m[0][3]; 
-    m[1] = m[1] / m[1][3]; 
-    m[2] = m[2] / m[2][3]; 
+    m[0] = m[0] / m[0].w;
+    m[1] = m[1] / m[1].w;
+    m[2] = m[2] / m[2].w;
     return m;
 }

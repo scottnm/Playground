@@ -57,23 +57,13 @@ TEST(ViewMatrixTests, TestScreenspaceMatrix2)
     EXPECT_EQ(m, exp);
 }
 
-TEST(ViewMatrixTests, Retroproject_Identity)
+TEST(ViewMatrixTests, Retroproject)
 {
-    auto world_space_coord = glm::vec4 {1, 2, 0, 1};
-    glm::vec3 exp_proj_coord = world_space_coord;
-    EXPECT_EQ(retroproject(world_space_coord), exp_proj_coord); 
-}
-
-TEST(ViewMatrixTests, Retroproject_OnNearClip)
-{
-    auto world_space_coord = glm::vec4 {1, 2, 1, 5.0f/4};
-    auto exp_proj_coord = glm::vec3 {4.0f/5, 8.0f/5, 4.0f/5};
-    EXPECT_EQ(retroproject(world_space_coord), exp_proj_coord); 
-}
-
-TEST(ViewMatrixTests, Retroproject_1)
-{
-    auto world_space_coord = glm::vec4 {1, 2, -3, 5.0f/8};
-    auto exp_proj_coord = glm::vec3 {8.0f/5, 16.0f/5, -24.0f/5};
-    EXPECT_EQ(retroproject(world_space_coord), exp_proj_coord); 
+    auto world_space_coords = glm::mat3x4(1.0f, 2.0f, 0.0f, 1.0f,
+                                          1.0f, 2.0f, 1.0f, 5.0f/4,
+                                          1.0f, 2.0f, -3.0f, 5.0f/8);
+    auto exp_proj_coords = glm::mat3(1.0f, 2.0f, 0.0f,
+                                     4.0f/5, 8.0f/5, 4.0f/5,
+                                     8.0f/5, 16.0f/5, -24.0f/5);
+    EXPECT_EQ(retroproject(world_space_coords), exp_proj_coords);
 }
