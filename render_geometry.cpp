@@ -6,24 +6,17 @@
 #include <glm/mat3x4.hpp>
 #include <glm/vec4.hpp>
 
-static glm::vec3 face_normal(glm::mat3 verts);
-static double face_brightness(glm::mat3x4 verts);
+static double normal_to_brightness(glm::vec3 normal);
+static bool is_face_visible(glm::mat3x4 verts);
 static glm::mat3x4 expand_matrix(glm::mat3 m);
-
-vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
-{
-    return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
-}
 
 void render_line (
         TGAImage& img,
         TGAImage& tex,
-        float brightness,
         z_buffer& zbuf,
-        vec3 start,
-        vec3 dest,
-        vec2 startuv,
-        vec2 enduv)
+        vec3 start, vec3 dest,
+        vec2 start_uv, vec2 end_uv,
+        float start_brightness, float end_brightness)
 {
     // optionally transpose parameters so that the slope has a greater xdiff
     bool transposed = false;
@@ -38,21 +31,25 @@ void render_line (
     if (start.x > dest.x)
     {
         std::swap(start, dest);
-        std::swap(startuv, enduv);
+        std::swap(start_uv, end_uv);
+        std::swap(start_brightness, end_brightness);
     }
 
-    // draw the line
+    // rates of change (diffs) for each param
     int dx = dest.x - start.x;
     int dy = dest.y - start.y;
     float dz = dest.z - start.z;
-    auto duv = enduv - startuv;
+    auto d_uv = end_uv - start_uv;
+    auto d_brightness = end_brightness - start_brightness;
 
+    // draw the line
     for (int x = start.x; x < dest.x; ++x)
     {
         float t = (x - start.x)/(float)dx;
         int y = (int)(start.y + dy * t);
         float z = start.z + dz * t;
-        auto uv = startuv + duv * t;
+        auto uv = start_uv + d_uv * t;
+        auto brightness = start_brightness + d_brightness * t;
 
         int xcopy = x;
         if (transposed)
@@ -75,20 +72,21 @@ void render_line (
 void render_triangle (
         TGAImage& img,
         TGAImage& tex,
-        float brightness,
         z_buffer& zbuf,
-        vec3 v1,
-        vec3 v2,
-        vec3 v3,
-        vec2 vt1,
-        vec2 vt2,
-        vec2 vt3)
+        vec3 v1, vec3 v2, vec3 v3,
+        vec2 vt1, vec2 vt2, vec2 vt3,
+        vec3 vn1, vec3 vn2, vec3 vn3)
 {
+    // transform the vertex normals into brightness values
+    auto b1 = normal_to_brightness(vn1);
+    auto b2 = normal_to_brightness(vn2);
+    auto b3 = normal_to_brightness(vn3);
+
     // bubble sort input verts so that v1 > v2 > v3 in y axis
     using std::swap;
-    if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); }
-    if (v2.y > v1.y) { swap(v1, v2); swap(vt1, vt2); }
-    if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); }
+    if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); swap(b2, b3); }
+    if (v2.y > v1.y) { swap(v1, v2); swap(vt1, vt2); swap(b1, b2); }
+    if (v3.y > v2.y) { swap(v2, v3); swap(vt2, vt3); swap(b2, b3); }
 
     // convert to int
     glm::ivec3 iv1 = v1;
@@ -113,18 +111,18 @@ void render_triangle (
         auto t_alpha = (float)dy / total_height;
         auto x_alpha = (int)(x0 + t_alpha * iv1_3.x);
         auto z_alpha = z0 + t_alpha * dz1_3;
-        auto texture_alpha = bary_lerp(vt1, vt2, vt3, 
-                vec3 {t_alpha, 0, 1 - t_alpha});
+        auto texture_alpha = bary_lerp(vt1, vt2, vt3, vec3(t_alpha, 0, 1 - t_alpha));
+        auto brightness_alpha = bary_lerp(b1, b2, b3, vec3(t_alpha, 0, 1 - t_alpha));
 
         auto t_beta = (float)dy / bottom_segment_height;
         auto x_beta = (int)(x0 + t_beta * iv2_3.x);
         auto z_beta = z0 + t_beta * dz2_3;
-        auto texture_beta = bary_lerp(vt1, vt2, vt3,
-                vec3 {0, t_beta, 1 - t_beta});
+        auto texture_beta = bary_lerp(vt1, vt2, vt3, vec3(0, t_beta, 1 - t_beta));
+        auto brightness_beta = bary_lerp(b1, b2, b3, vec3(0, t_beta, 1 - t_beta));
 
         auto y = dy + iv3.y;
-        render_line(img, tex, brightness, zbuf, {x_alpha, y, z_alpha},
-                {x_beta, y, z_beta}, texture_alpha, texture_beta); 
+        render_line(img, tex, zbuf, {x_alpha, y, z_alpha}, {x_beta, y, z_beta},
+                texture_alpha, texture_beta, brightness_alpha, brightness_beta); 
     }
 
     auto iv1_2 = iv1 - iv2;
@@ -140,18 +138,18 @@ void render_triangle (
         auto t_alpha = (float)(dy + bottom_segment_height) / total_height;
         auto x_alpha = (int)(alpha0 + t_alpha * iv1_3.x);
         auto z_alpha = alpha_z0 + t_alpha * dz1_3;
-        auto texture_alpha = bary_lerp(vt1, vt2, vt3,
-                vec3 {t_alpha, 0, 1 - t_alpha});
+        auto texture_alpha = bary_lerp(vt1, vt2, vt3, vec3(t_alpha, 0, 1 - t_alpha));
+        auto brightness_alpha = bary_lerp(b1, b2, b3, vec3(t_alpha, 0, 1 - t_alpha));
 
         auto t_beta = (float)dy / final_segment_height;
         auto x_beta = (int)(beta0 + t_beta * iv1_2.x);
         auto z_beta = beta_z0 + t_beta * dz1_2;
-        auto texture_beta = bary_lerp(vt1, vt2, vt3,
-                vec3 {t_beta, 1 - t_beta, 0});
+        auto texture_beta = bary_lerp(vt1, vt2, vt3, vec3(t_beta, 1 - t_beta, 0));
+        auto brightness_beta = bary_lerp(b1, b2, b3, vec3(t_beta, 1 - t_beta, 0));
 
         auto y = bottom_segment_height + dy + iv3.y;
-        render_line(img, tex, brightness, zbuf, {x_alpha, y, z_alpha},
-                {x_beta, y, z_beta}, texture_alpha, texture_beta); 
+        render_line(img, tex, zbuf, {x_alpha, y, z_alpha}, {x_beta, y, z_beta},
+                texture_alpha, texture_beta, brightness_alpha, brightness_beta); 
     }
 }
 
@@ -170,31 +168,29 @@ void render_model (
     for (auto& face : model.faces)
     {
         auto verts = model.get_verts(face);
-        auto brightness = face_brightness(verts);
-        if (brightness > 0)
+        if (is_face_visible(verts))
         {
             auto projected_verts = retroproject(viewmat * expand_matrix(verts));
             auto texture_verts = model.get_texture_verts(face);
-            render_triangle(img, tex, brightness, zbuf,
+            auto vert_norms = model.get_vertex_normals(face);
+            render_triangle(img, tex, zbuf,
                     projected_verts[0], projected_verts[1], projected_verts[2],
-                    texture_verts[0], texture_verts[1], texture_verts[2]);
+                    texture_verts[0], texture_verts[1], texture_verts[2],
+                    vert_norms[0], vert_norms[1], vert_norms[2]);
         }
     }
 }
 
-static glm::vec3 face_normal(glm::mat3 face_verts)
+static bool is_face_visible(glm::mat3x4 verts)
 {
-    auto side_a = face_verts[1] - face_verts[0];
-    auto side_b = face_verts[2] - face_verts[1];
-    return glm::cross(side_a, side_b);
+    auto normal = face_normal(verts);
+    return normal_to_brightness(normal) > 0;
 }
 
-static double face_brightness(glm::mat3x4 verts)
+static double normal_to_brightness(glm::vec3 normal)
 {
     static const auto half_pi = glm::half_pi<double>();
     static const auto to_cam = glm::vec3(0, 0, 1);
-
-    auto normal = face_normal(verts);
     auto angle_between = acos(dot(to_cam, normal) / length(normal));
     return angle_between == 0 ? 1 : (half_pi - angle_between) / half_pi;
 }

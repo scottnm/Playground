@@ -15,24 +15,18 @@ using glm::vec2;
 void render_line (
         TGAImage& img,
         TGAImage& tex,
-        float brightness,
         z_buffer& zbuf,
-        vec3 start,
-        vec3 dest,
-        vec2 startuv,
-        vec2 enduv);
+        vec3 start, vec3 dest,
+        vec2 start_uv, vec2 end_uv,
+        vec3 start_brightness, vec3 end_brightness);
 
 void render_triangle (
         TGAImage& img,
         TGAImage& tex,
-        float brightness,
         z_buffer& zbuf,
-        vec3 v1,
-        vec3 v2,
-        vec3 v3,
-        vec2 vt1,
-        vec2 vt2,
-        vec2 vt3);
+        vec3 v1, vec3 v2, vec3 v3,
+        vec2 vt1, vec2 vt2, vec2 vt3,
+        vec3 vn1, vec3 vn2, vec3 vn3);
 
 void render_model (
         TGAImage& img,
@@ -41,10 +35,10 @@ void render_model (
         const model& model,
         const mat4 viewmat);
 
-vec2 bary_lerp(
-        vec2 v0,
-        vec2 v1,
-        vec2 v2,
-        vec3 bary);
+template<typename T>
+auto bary_lerp(T v0, T v1, T v2, vec3 bary)
+{
+    return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
+}
 
 #endif 

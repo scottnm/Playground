@@ -32,10 +32,14 @@ typedef struct
 
     mat3 get_verts(const face& f) const;
     mat3x2 get_texture_verts(const face& face) const;
+    mat3 get_vertex_normals(const face& face) const;
 } model;
 
 std::unique_ptr<model> load_model(const std::string& file);
 void test_print_model(const model& m);
+
+glm::vec3 face_normal(glm::mat3 face_verts);
+
 
 #endif //__MODEL_H__
 

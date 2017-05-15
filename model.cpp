@@ -18,6 +18,12 @@ mat3x2 model::get_texture_verts(const face& face) const
                   text_verts[face.vti[2]]);
 }
 
+mat3 model::get_vertex_normals(const face& face) const
+{
+    auto fnorm = face_normal(get_verts(face));
+    return mat3(fnorm, fnorm, fnorm);
+}
+
 std::unique_ptr<model> load_model(const string& file)
 {
     const static string VERTEX_KEY("v");
@@ -103,4 +109,11 @@ void test_print_model(const model& m)
         printf("%d - %f, %f, %f\n", vi3, v3.x, v3.y, v3.z);
         printf("\n");
     }
+}
+
+glm::vec3 face_normal(glm::mat3 face_verts)
+{
+    auto side_a = face_verts[1] - face_verts[0];
+    auto side_b = face_verts[2] - face_verts[1];
+    return glm::cross(side_a, side_b);
 }
