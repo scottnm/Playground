@@ -174,14 +174,10 @@ void render_model (
         if (brightness > 0)
         {
             auto projected_verts = retroproject(viewmat * expand_matrix(verts));
-
-            auto vt0 = model.text_verts[face.vti[0]];
-            auto vt1 = model.text_verts[face.vti[1]];
-            auto vt2 = model.text_verts[face.vti[2]];
-
+            auto texture_verts = model.get_texture_verts(face);
             render_triangle(img, tex, brightness, zbuf,
                     projected_verts[0], projected_verts[1], projected_verts[2],
-                    vt0, vt1, vt2);
+                    texture_verts[0], texture_verts[1], texture_verts[2]);
         }
     }
 }
