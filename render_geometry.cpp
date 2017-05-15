@@ -3,10 +3,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/mat3x3.hpp>
+#include <glm/mat3x4.hpp>
 #include <glm/vec4.hpp>
 
 static glm::vec3 get_face_normal(glm::mat3 verts);
 static double orientation_to_brightness(glm::vec3 face_normal);
+static glm::mat3x4 expand_matrix(glm::mat3 m);
 
 vec2 bary_lerp(vec2 v0, vec2 v1, vec2 v2, vec3 bary)
 {
@@ -172,20 +174,15 @@ void render_model (
         auto brightness = orientation_to_brightness(face_normal);
         if (brightness > 0)
         {
-            auto pv0 = retroproject(viewmat * glm::vec4(verts[0], 1));
-            auto pv1 = retroproject(viewmat * glm::vec4(verts[1], 1));
-            auto pv2 = retroproject(viewmat * glm::vec4(verts[2], 1));
-
-            /*
             auto projected_verts = retroproject(viewmat * expand_matrix(verts));
-            */
 
             auto vt0 = model.text_verts[face.vti[0]];
             auto vt1 = model.text_verts[face.vti[1]];
             auto vt2 = model.text_verts[face.vti[2]];
 
             render_triangle(img, tex, brightness, zbuf,
-                    pv0, pv1, pv2, vt0, vt1, vt2);
+                    projected_verts[0], projected_verts[1], projected_verts[2],
+                    vt0, vt1, vt2);
         }
     }
 }
@@ -203,4 +200,11 @@ static double orientation_to_brightness(glm::vec3 face_normal)
     static const auto to_cam = glm::vec3(0, 0, 1);
     auto angle_between = acos(dot(to_cam, face_normal) / length(face_normal));
     return angle_between == 0 ? 1 : (half_pi - angle_between) / half_pi;
+}
+
+static glm::mat3x4 expand_matrix(glm::mat3 m)
+{
+    return glm::mat3x4(m[0][0], m[0][1], m[0][2], 1,
+                       m[1][0], m[1][1], m[1][2], 1,
+                       m[2][0], m[2][1], m[2][2], 1);
 }

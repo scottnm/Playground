@@ -1,6 +1,8 @@
 #ifndef __VIEWMATRIX_H__
 #define __VIEWMATRIX_H__
 
+#include <glm/mat3x3.hpp>
+#include <glm/mat3x4.hpp>
 #include <glm/mat4x4.hpp>
 
 glm::mat4 perspective_proj_xform(
@@ -12,7 +14,7 @@ glm::mat4 screenspace_xform(
         int x_scale,
         int y_scale);
 
-glm::vec3 retroproject(
-        glm::vec4 v);
+glm::mat3 retroproject(
+        glm::mat3x4 m);
 
 #endif // __VIEWMATRIX_H__
