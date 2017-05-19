@@ -1,3 +1,4 @@
+#include "camera.hpp"
 #include "render_geometry.hpp"
 #include "model.hpp"
 #include "tgaimage.hpp"
@@ -20,16 +21,11 @@ const static auto window_height = 1000;
 
 int main(int argc, char** argv)
 {
-    auto cam_eye = glm::vec3(1.25, 1, 1.25);
-    auto cam_center = glm::vec3(-0.2, 0, 0.1);
-    auto cam_up = glm::vec3(0, 1, 0);
-    auto cam_distance = glm::length(cam_eye - cam_center);
-
     // get the view matrix
-    auto lookat = lookat_xform(cam_eye, cam_center, cam_up);
+    auto lookat = lookat_xform(camera_position(), camera_target(), camera_up());
     auto screenspace = screenspace_xform(window_width, window_height,
                                          window_width, window_height);
-    auto perspective_projection = perspective_proj_xform(cam_distance);
+    auto perspective_projection = perspective_proj_xform(camera_distance());
     auto viewmat = screenspace * perspective_projection * lookat;
 
     // prepare the image and texture file
