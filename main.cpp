@@ -5,6 +5,7 @@
 #include "z_buffer.hpp"
 #include <cmath>
 #include <chrono>
+#include <glm/glm.hpp>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
@@ -19,11 +20,17 @@ const static auto window_height = 1000;
 
 int main(int argc, char** argv)
 {
+    auto cam_eye = glm::vec3(1.25, 1, 1.25);
+    auto cam_center = glm::vec3(-0.2, 0, 0.1);
+    auto cam_up = glm::vec3(0, 1, 0);
+    auto cam_distance = glm::length(cam_eye - cam_center);
+
     // get the view matrix
+    auto lookat = lookat_xform(cam_eye, cam_center, cam_up);
     auto screenspace = screenspace_xform(window_width, window_height,
                                          window_width, window_height);
-    auto perspective_projection = perspective_proj_xform(3.0f);
-    auto viewmat = screenspace * perspective_projection;
+    auto perspective_projection = perspective_proj_xform(cam_distance);
+    auto viewmat = screenspace * perspective_projection * lookat;
 
     // prepare the image and texture file
     TGAImage image(window_width, window_height, TGAImage::RGB);

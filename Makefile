@@ -1,5 +1,5 @@
 CC       := g++
-CPPFLAGS := -std=c++14 -g
+CPPFLAGS := -std=c++14
 LDFLAGS  := -lprofiler
 LIBS     := -lm
 TARGET   := main
