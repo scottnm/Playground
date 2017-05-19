@@ -1,3 +1,4 @@
+#include "camera.hpp"
 #include "render_geometry.hpp"
 #include "viewmatrix.hpp"
 #include <glm/glm.hpp>
@@ -191,7 +192,7 @@ static bool is_face_visible(glm::mat3x4 verts)
 static double normal_to_brightness(glm::vec3 normal)
 {
     static const auto half_pi = glm::half_pi<double>();
-    static const auto to_cam = glm::vec3(0, 0, 1);
+    static const auto to_cam = glm::normalize(camera_position() - camera_target());
     auto angle_between = acos(dot(to_cam, normal) / length(normal));
     return angle_between == 0 ? 1 : (half_pi - angle_between) / half_pi;
 }
