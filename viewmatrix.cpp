@@ -36,12 +36,3 @@ glm::mat4 lookat_xform(glm::vec3 eye, glm::vec3 center, glm::vec3 up)
                              -center.x, -center.y, -center.z, 1);
     return cam_orientation * cam_pos;
 }
-
-
-glm::mat3 retroproject(glm::mat3x4 m)
-{
-    m[0] = m[0] / m[0].w;
-    m[1] = m[1] / m[1].w;
-    m[2] = m[2] / m[2].w;
-    return m;
-}

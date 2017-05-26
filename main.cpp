@@ -1,6 +1,8 @@
 #include "camera.hpp"
-#include "render_geometry.hpp"
+#include "ishader.hpp"
 #include "model.hpp"
+#include "render_geometry.hpp"
+#include "simple_texture_shader.hpp"
 #include "tgaimage.hpp"
 #include "viewmatrix.hpp"
 #include "z_buffer.hpp"
@@ -28,21 +30,21 @@ int main(int argc, char** argv)
     auto perspective_projection = perspective_proj_xform(camera_distance());
     auto viewmat = screenspace * perspective_projection * lookat;
 
-    // prepare the image and texture file
+    // prepare the image to render to
     TGAImage image(window_width, window_height, TGAImage::RGB);
-    TGAImage tex;
-    tex.read_tga_file(tex_file.c_str());
-    tex.flip_vertically();
 
     // prepare the zbuffer
     z_buffer zbuf(window_width, window_height);
+
+    // select the shader
+    simple_texture_shader shader(tex_file);
 
     // load the model
     auto model_ptr = load_model(obj_file.c_str());
 
     // render the model
     auto starttime = high_resolution_clock::now();
-    render_model(image, tex, zbuf, *model_ptr, viewmat);
+    render_model(image, zbuf, *model_ptr, viewmat, shader);
     auto endtime = high_resolution_clock::now();
 
     // write the rendered model to a file
