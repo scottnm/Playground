@@ -25,4 +25,18 @@ private:
     TGAImage tex;
 };
 
+class normal_shader : public ishader
+{
+public:
+    virtual vec3 vertex(
+            const mat4& viewmat,
+            vec3 v) const;
+
+    virtual frag_color fragment(
+            vec3 bary,
+            mat3 verts,
+            mat3x2 tex_coords,
+            mat3 vert_norms) const;
+};
+
 #endif // __SIMPLE_TEXTURE_SHADER_H__

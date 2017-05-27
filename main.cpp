@@ -2,7 +2,7 @@
 #include "ishader.hpp"
 #include "model.hpp"
 #include "render_geometry.hpp"
-#include "simple_texture_shader.hpp"
+#include "shaders.hpp"
 #include "tgaimage.hpp"
 #include "viewmatrix.hpp"
 #include "z_buffer.hpp"
@@ -37,7 +37,8 @@ int main(int argc, char** argv)
     z_buffer zbuf(window_width, window_height);
 
     // select the shader
-    simple_texture_shader shader(tex_file);
+    //simple_texture_shader shader(tex_file);
+    normal_shader shader;
 
     // load the model
     auto model_ptr = load_model(obj_file.c_str());
