@@ -21,15 +21,12 @@ void render_triangle (
         vec2 vt1, vec2 vt2, vec2 vt3,
         vec3 vn1, vec3 vn2, vec3 vn3)
 {
-    using std::min;
-    using std::max;
-
-    auto minx = min(v1.x, min(v2.x, v3.x));
-    auto miny = min(v1.y, min(v2.y, v3.y));
+    auto minx = std::min(v1.x, std::min(v2.x, v3.x));
+    auto miny = std::min(v1.y, std::min(v2.y, v3.y));
     vec2 bboxmin = {minx, miny};
 
-    auto maxx = max(v1.x, max(v2.x, v3.x));
-    auto maxy = max(v1.y, max(v2.y, v3.y));
+    auto maxx = std::max(v1.x, std::max(v2.x, v3.x));
+    auto maxy = std::max(v1.y, std::max(v2.y, v3.y));
     vec2 bboxmax = {maxx, maxy};
 
     for (int x = bboxmin.x; x < bboxmax.x; ++x)
@@ -60,11 +57,6 @@ void render_model (
         const mat4& viewmat,
         const ishader& shader)
 {
-    using glm::acos;
-    using glm::dot;
-    using glm::cross;
-    using glm::length;
-
     for (auto& face : model.faces)
     {
         auto verts = model.get_verts(face);
