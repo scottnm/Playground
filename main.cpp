@@ -15,6 +15,7 @@ using std::chrono::duration;
 using std::chrono::duration_cast;
 
 const static std::string base_dir = "obj/african_head/";
+const static std::string normalmap_file = base_dir + "normalmap.tga";
 const static std::string tex_file = base_dir + "diffuse.tga";
 const static std::string obj_file = base_dir + "model.obj";
 
@@ -38,7 +39,7 @@ int main(int argc, char** argv)
 
     // select the shader
     //simple_texture_shader shader(tex_file);
-    normal_shader shader;
+    normal_shader shader(normalmap_file);
 
     // load the model
     auto model_ptr = load_model(obj_file.c_str());
