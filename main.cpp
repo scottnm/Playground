@@ -39,7 +39,8 @@ int main(int argc, char** argv)
 
     // select the shader
     //simple_texture_shader shader(tex_file);
-    normal_shader shader(normalmap_file);
+    //normal_shader shader(normalmap_file);
+    bumped_texture_shader shader(tex_file, normalmap_file);
 
     // load the model
     auto model_ptr = load_model(obj_file.c_str());

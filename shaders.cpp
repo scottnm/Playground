@@ -49,6 +49,46 @@ frag_color simple_texture_shader::fragment(
 
 
 //
+// BUMPED TEXTURE SHADER
+//
+
+bumped_texture_shader::bumped_texture_shader(
+        const string& texture_name,
+        const string& normalmap_name)
+{
+    tex.read_tga_file(texture_name.c_str());
+    tex.flip_vertically();
+    normalmap.read_tga_file(normalmap_name.c_str());
+    normalmap.flip_vertically();
+}
+
+vec3 bumped_texture_shader::vertex(
+        const mat4& viewmat,
+        const vec3& v) const
+{
+    auto res = viewmat * glm::vec4(v, 1);
+    return res / res.w;
+}
+
+
+frag_color bumped_texture_shader::fragment(
+        const vec3& bary,
+        const mat3& verts,
+        const mat3x2& tex_coords,
+        const mat3& vert_norms) const
+{
+    auto uv = bary_lerp(tex_coords[0], tex_coords[1], tex_coords[2], bary);
+    auto normval = normalmap.get_from_ratio(uv[0], uv[1]);
+    auto norm = normalize(vec3(normval.r - 127.5, normval.g - 127.5, normval.b - 127.5));
+    float intensity = clamp(0.0f, 1.0f, dot(to_light, norm));
+
+    auto color = tex.get_from_ratio(uv[0], uv[1]);
+    color.scale(intensity);
+
+    return frag_color {color, intensity > 0};
+}
+
+//
 // NORMAL SHADER
 //
 normal_shader::normal_shader(
