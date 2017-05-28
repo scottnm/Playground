@@ -63,9 +63,40 @@ struct TGAColor
     
     void scale(float s)
     {
-        r *= s;
-        g *= s;
-        b *= s;
+        r = std::min<int>((int)r * s, 255);
+        g = std::min<int>((int)g * s, 255);
+        b = std::min<int>((int)b * s, 255);
+    }
+
+    TGAColor operator +(const TGAColor& c) const
+    {
+        TGAColor res(0, 3);
+        if ((bytespp == 3 || bytespp == 4) && (c.bytespp == 3 || c.bytespp == 4))
+        {
+            res.r = std::min<int>((int)r + c.r, 255);
+            res.g = std::min<int>((int)g + c.g, 255);
+            res.b = std::min<int>((int)b + c.b, 255);
+        }
+        else if(bytespp == 1 && c.bytespp == 1)
+        {
+            char val = std::min<int>((int)raw[0] + c.raw[0], 255);
+            res.r = val;
+            res.g = val;
+            res.b = val;
+        }
+        else if(bytespp == 1)
+        {
+            res.r = std::min<int>((int)raw[0] + c.r, 255);
+            res.g = std::min<int>((int)raw[0] + c.g, 255);
+            res.b = std::min<int>((int)raw[0] + c.b, 255);
+        }
+        else
+        {
+            res.r = std::min<int>((int)r + c.raw[0], 255);
+            res.g = std::min<int>((int)g + c.raw[0], 255);
+            res.b = std::min<int>((int)b + c.raw[0], 255);
+        }
+        return res;
     }
 };
 
