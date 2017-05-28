@@ -25,13 +25,13 @@ class ishader
 public:
     virtual vec3 vertex(
             const mat4& viewmat,
-            vec3 v) const = 0;
+            const vec3& v) const = 0;
 
     virtual frag_color fragment(
-            vec3 bary,
-            mat3 verts,
-            mat3x2 tex_coords,
-            mat3 vert_norms) const = 0;
+            const vec3& bary,
+            const mat3& verts,
+            const mat3x2& tex_coords,
+            const mat3& vert_norms) const = 0;
 };
 
 #endif // __ISHADER_H__
