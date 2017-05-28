@@ -85,10 +85,6 @@ void render_model (
 
 static bool is_face_visible(glm::mat3x4 verts)
 {
-    auto normal = face_normal(verts);
-
-    static const auto half_pi = glm::half_pi<double>();
     static const auto to_cam = glm::normalize(camera_position() - camera_target());
-    auto angle_between = acos(dot(to_cam, normal) / length(normal));
-    return (half_pi - angle_between) / half_pi > 0;
+    return dot(to_cam, face_normal(verts)) > 0;
 }
