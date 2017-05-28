@@ -11,7 +11,6 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
-static double normal_to_brightness(glm::vec3 normal);
 static bool is_face_visible(glm::mat3x4 verts);
 
 void render_triangle (
@@ -87,15 +86,9 @@ void render_model (
 static bool is_face_visible(glm::mat3x4 verts)
 {
     auto normal = face_normal(verts);
-    return normal_to_brightness(normal) > 0;
-    // TODO: REPLACE DELETE NORMAL TO BRIGHTNESS AND FIX
-}
 
-static double normal_to_brightness(glm::vec3 normal)
-{
     static const auto half_pi = glm::half_pi<double>();
     static const auto to_cam = glm::normalize(camera_position() - camera_target());
     auto angle_between = acos(dot(to_cam, normal) / length(normal));
-    return angle_between == 0 ? 1 : (half_pi - angle_between) / half_pi;
-    // TODO: REPLACE return (half_pi - angle_between) / half_pi;
+    return (half_pi - angle_between) / half_pi > 0;
 }
