@@ -11,8 +11,7 @@ auto bary_lerp(T v0, T v1, T v2, vec3 bary)
     return v0 * bary[0] + v1 * bary[1] + v2 * bary[2];
 }
 
-template <typename T>
-vec3 barycentric(T a, T b, T c, T p)
+vec3 barycentric(vec2 a, vec2 b, vec2 c, vec2 p)
 {
     auto v0 = b - a;
     auto v1 = c - a;

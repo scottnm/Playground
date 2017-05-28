@@ -5,9 +5,11 @@
 #include "model.hpp"
 #include "tgaimage.hpp"
 #include "z_buffer.hpp"
+#include <glm/mat3x3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 
+using glm::mat3;
 using glm::mat4;
 using glm::ivec3;
 using glm::vec3;
@@ -17,9 +19,9 @@ void render_triangle (
         TGAImage& img,
         z_buffer& zbuf,
         const ishader& shader,
-        vec3 v1, vec3 v2, vec3 v3,
-        vec2 vt1, vec2 vt2, vec2 vt3,
-        vec3 vn1, vec3 vn2, vec3 vn3);
+        const mat3& vs,
+        const mat3x2& vts,
+        const mat3& vns);
 
 void render_model (
         TGAImage& img,
