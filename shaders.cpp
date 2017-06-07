@@ -21,8 +21,8 @@ using std::abs;
 using std::max;
 using std::pow;
 
-static const auto to_light = glm::normalize(camera_position() - camera_target());
-static const auto to_cam = glm::normalize(camera_position() - camera_target());
+static const auto to_light = normalize(vec3(0, -1, 1));
+static const auto to_cam = normalize(camera_position() - camera_target());
 
 //
 // NORMAL SHADER
@@ -59,7 +59,7 @@ frag_color normal_shader::fragment(
     TGAColor c(abs(norm_color.x), abs(norm_color.y), abs(norm_color.z), 255);
     c.scale(intensity);
 
-    return frag_color {c, intensity > 0};
+    return frag_color {c, true};
 }
 
 //
@@ -93,7 +93,7 @@ frag_color simple_texture_shader::fragment(
     auto color = tex.get_from_ratio(uv[0], uv[1]);
     color.scale(intensity);
 
-    return frag_color {color, intensity > 0};
+    return frag_color {color, true};
 }
 
 
@@ -134,7 +134,7 @@ frag_color bumped_texture_shader::fragment(
     auto color = tex.get_from_ratio(uv[0], uv[1]);
     color.scale(intensity);
 
-    return frag_color {color, intensity > 0};
+    return frag_color {color, true};
 }
 
 
@@ -187,7 +187,7 @@ frag_color phong_shader::fragment(
 
     diff_color.scale(diff_intensity + spec_intensity * .6);
 
-    return frag_color {ambient + diff_color, diff_intensity > 0};
+    return frag_color {ambient + diff_color, true};
 }
 
 
@@ -272,5 +272,5 @@ frag_color phong_tangent_space_shader::fragment(
 
     diff_color.scale(diff_intensity + spec_intensity * .6);
 
-    return frag_color {ambient + diff_color, diff_intensity > 0};
+    return frag_color {ambient + diff_color, true};
 }
