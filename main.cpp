@@ -18,6 +18,7 @@ const static std::string base_dir = "obj/african_head/";
 const static std::string obj_file = base_dir + "model.obj";
 const static std::string tex_file = base_dir + "diffuse.tga";
 const static std::string normalmap_file = base_dir + "normalmap.tga";
+const static std::string tangent_normalmap_file = base_dir + "tangent_normalmap.tga";
 const static std::string specular_file = base_dir + "specular.tga";
 
 const static auto window_width = 1000;
@@ -38,11 +39,12 @@ int main(int argc, char** argv)
     // prepare the zbuffer
     z_buffer zbuf(window_width, window_height);
 
-    // select the shader
-    //simple_texture_shader shader(tex_file);
-    //normal_shader shader(normalmap_file);
-    //bumped_texture_shader shader(tex_file, normalmap_file);
-    phong_shader shader(tex_file, normalmap_file, specular_file);
+    // select your shader 
+    //          simple_texture_shader shader(tex_file);
+    //          normal_shader shader(normalmap_file);
+    //          bumped_texture_shader shader(tex_file, normalmap_file);
+    //          phong_shader shader(tex_file, normalmap_file, specular_file);
+    phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
 
     // load the model
     auto model_ptr = load_model(obj_file.c_str());
