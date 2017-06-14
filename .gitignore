@@ -1,6 +1,7 @@
 main
 main-profile
 output.tga
+depth.tga
 output_archive
 .*.*.swp
 *.o
