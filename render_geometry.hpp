@@ -28,6 +28,7 @@ void render_model (
         z_buffer& zbuf,
         const model& model,
         const mat4& viewmat,
-        const ishader& shader);
+        const ishader& shader,
+        const vec3 to_cam);
 
 #endif 

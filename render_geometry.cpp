@@ -11,7 +11,10 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
-static bool is_face_visible(glm::mat3x4 verts);
+using glm::mat3x4;
+using glm::normalize;
+
+static bool is_face_visible(mat3x4 verts, vec3 to_cam);
 
 void render_triangle (
         TGAImage& img,
@@ -50,18 +53,18 @@ void render_triangle (
         }
     }
 }
-
 void render_model (
         TGAImage& img,
         z_buffer& zbuf,
         const model& model,
         const mat4& viewmat,
-        const ishader& shader)
+        const ishader& shader,
+        const vec3 to_cam)
 {
     for (auto& face : model.faces)
     {
         auto verts = model.get_verts(face);
-        if (is_face_visible(verts))
+        if (is_face_visible(verts, to_cam))
         {
             verts[0] = shader.vertex(viewmat, verts[0]);
             verts[1] = shader.vertex(viewmat, verts[1]);
@@ -73,8 +76,7 @@ void render_model (
     }
 }
 
-static bool is_face_visible(glm::mat3x4 verts)
+static bool is_face_visible(mat3x4 verts, vec3 to_cam)
 {
-    static const auto to_cam = glm::normalize(camera_position() - camera_target());
     return dot(to_cam, face_normal(verts)) > 0;
 }

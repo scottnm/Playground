@@ -2,6 +2,7 @@
 #define __IMAGE_H__
 
 #include <fstream>
+#include <glm/glm.hpp>
 
 #pragma pack(push,1)
 struct TGA_Header
@@ -63,9 +64,9 @@ struct TGAColor
     
     void scale(float s)
     {
-        r = std::min<int>((int)r * s, 255);
-        g = std::min<int>((int)g * s, 255);
-        b = std::min<int>((int)b * s, 255);
+        r = glm::clamp(r * s, 0.0f, 255.0f);
+        g = glm::clamp(g * s, 0.0f, 255.0f);
+        b = glm::clamp(b * s, 0.0f, 255.0f);
     }
 
     TGAColor operator +(const TGAColor& c) const

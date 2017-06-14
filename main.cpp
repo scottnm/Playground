@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include "ishader.hpp"
+#include "light.hpp"
 #include "model.hpp"
 #include "render_geometry.hpp"
 #include "shaders.hpp"
@@ -27,11 +28,38 @@ const static auto window_height = 1000;
 int main(int argc, char** argv)
 {
     // get the view matrix
-    auto lookat = lookat_xform(camera_position(), camera_target(), camera_up());
     auto screenspace = screenspace_xform(window_width, window_height,
-                                         window_width, window_height);
-    auto perspective_projection = perspective_proj_xform(camera_distance());
-    auto viewmat = screenspace * perspective_projection * lookat;
+            window_width, window_height);
+
+    auto shadowpass_viewmat = screenspace
+        * perspective_proj_xform(camera_distance())
+        * lookat_xform(to_light() * camera_distance(), vec3(0, 0, 0), vec3(0, 1, 0));
+
+    // prepare the image to render to
+    TGAImage shadow_buf(window_width, window_height, TGAImage::RGB);
+
+    // prepare the zbuffer
+    z_buffer shadow_zbuf(window_width, window_height);
+
+    // shadow shader
+    shadow_shader shadowpass;
+
+    // load the model
+    auto model_ptr = load_model(obj_file.c_str());
+
+    // render the model
+    render_model(shadow_buf, shadow_zbuf, *model_ptr, shadowpass_viewmat,
+            shadowpass, to_light());
+
+    // write the rendered model to a file
+    shadow_buf.flip_vertically();
+    shadow_buf.write_tga_file("depth.tga");
+
+    /*
+    // get the view matrix
+    auto screenspace = screenspace_xform(window_width, window_height, window_width, window_height);
+    auto viewmat = screenspace * perspective_proj_xform(camera_distance())
+                   * lookat_xform(camera_position(), camera_target(), camera_up());
 
     // prepare the image to render to
     TGAImage image(window_width, window_height, TGAImage::RGB);
@@ -60,6 +88,7 @@ int main(int argc, char** argv)
 
     auto render_time = duration_cast<duration<double>>(endtime - starttime);
     printf("Render took: %f seconds\n", render_time.count());
+    */
 
     return 0;
 }
