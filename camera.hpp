@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 using glm::vec3;
 
+vec3 to_camera(void);
 vec3 camera_position(void);
 vec3 camera_target(void);
 vec3 camera_up(void);

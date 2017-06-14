@@ -55,9 +55,7 @@ int main(int argc, char** argv)
     shadow_buf.flip_vertically();
     shadow_buf.write_tga_file("depth.tga");
 
-    /*
     // get the view matrix
-    auto screenspace = screenspace_xform(window_width, window_height, window_width, window_height);
     auto viewmat = screenspace * perspective_proj_xform(camera_distance())
                    * lookat_xform(camera_position(), camera_target(), camera_up());
 
@@ -72,14 +70,12 @@ int main(int argc, char** argv)
     //          normal_shader shader(normalmap_file);
     //          bumped_texture_shader shader(tex_file, normalmap_file);
     //          phong_shader shader(tex_file, normalmap_file, specular_file);
-    phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
-
-    // load the model
-    auto model_ptr = load_model(obj_file.c_str());
+    //          phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
+    shadow_shader shader;
 
     // render the model
     auto starttime = high_resolution_clock::now();
-    render_model(image, zbuf, *model_ptr, viewmat, shader);
+    render_model(image, zbuf, *model_ptr, viewmat, shader, to_camera());
     auto endtime = high_resolution_clock::now();
 
     // write the rendered model to a file
@@ -88,7 +84,6 @@ int main(int argc, char** argv)
 
     auto render_time = duration_cast<duration<double>>(endtime - starttime);
     printf("Render took: %f seconds\n", render_time.count());
-    */
 
     return 0;
 }
