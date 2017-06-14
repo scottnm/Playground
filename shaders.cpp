@@ -17,6 +17,7 @@ using glm::mat3x2;
 using glm::normalize;
 using glm::reflect;
 using glm::transpose;
+using glm::vec4;
 
 using std::abs;
 using std::max;
@@ -39,7 +40,7 @@ vec3 normal_shader::vertex(
         const mat4& viewmat,
         const vec3& v) const
 {
-    auto res = viewmat * glm::vec4(v, 1);
+    auto res = viewmat * vec4(v, 1);
     return res / res.w;
 }
 
@@ -77,7 +78,7 @@ vec3 simple_texture_shader::vertex(
         const mat4& viewmat,
         const vec3& v) const
 {
-    auto res = viewmat * glm::vec4(v, 1);
+    auto res = viewmat * vec4(v, 1);
     return res / res.w;
 }
 
@@ -115,7 +116,7 @@ vec3 bumped_texture_shader::vertex(
         const mat4& viewmat,
         const vec3& v) const
 {
-    auto res = viewmat * glm::vec4(v, 1);
+    auto res = viewmat * vec4(v, 1);
     return res / res.w;
 }
 
@@ -159,7 +160,7 @@ vec3 phong_shader::vertex(
         const mat4& viewmat,
         const vec3& v) const
 {
-    auto res = viewmat * glm::vec4(v, 1);
+    auto res = viewmat * vec4(v, 1);
     return res / res.w;
 }
 
@@ -213,7 +214,7 @@ vec3 phong_tangent_space_shader::vertex(
         const mat4& viewmat,
         const vec3& v) const
 {
-    auto res = viewmat * glm::vec4(v, 1);
+    auto res = viewmat * vec4(v, 1);
     return res / res.w;
 }
 
@@ -284,7 +285,7 @@ vec3 shadow_shader::vertex(
         const mat4& viewmat,
         const vec3& v) const
 {
-    auto res = viewmat * glm::vec4(v, 1);
+    auto res = viewmat * vec4(v, 1);
     return res / res.w;
 }
 
@@ -303,3 +304,44 @@ frag_color shadow_shader::fragment(
     return frag_color {c, true};
 }
 
+
+//
+// SHADER WITH SHADOWS
+//
+
+shader_with_shadows::shader_with_shadows(
+        unique_ptr<ishader> shader,
+        const z_buffer& shadow_zbuf,
+        const mat4& shadow_xform)
+    : primary_shader(std::move(shader)), shadow_zbuf(shadow_zbuf), shadow_xform(shadow_xform) {}
+
+vec3 shader_with_shadows::vertex(
+        const mat4& viewmat,
+        const vec3& v) const
+{
+    auto res = viewmat * vec4(v, 1);
+    return res / res.w;
+}
+
+frag_color shader_with_shadows::fragment(
+        const vec3& bary,
+        const mat3& verts,
+        const mat3x2& tex_coords,
+        const mat3& vert_norms) const
+{
+    auto v = bary_lerp(verts[0], verts[1], verts[2], bary);
+    auto shadow_v = shadow_xform * vec4(v, 1);
+    shadow_v = shadow_v / shadow_v.w;
+
+    auto shadow_z_val = shadow_zbuf.get(shadow_v.x, shadow_v.y);
+
+    if (shadow_z_val > v.z)
+    {
+        //return { TGAColor(255, 0, 0, 255), true };
+        return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
+    }
+    else
+    {
+        return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
+    }
+}

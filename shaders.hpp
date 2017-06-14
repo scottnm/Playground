@@ -3,8 +3,12 @@
 
 #include "ishader.hpp"
 #include "tgaimage.hpp"
+#include "z_buffer.hpp"
 #include <string>
+#include <memory>
+
 using std::string;
+using std::unique_ptr;
 
 class normal_shader : public ishader
 {
@@ -125,6 +129,30 @@ public:
             const mat3& verts,
             const mat3x2& tex_coords,
             const mat3& vert_norms) const;
+};
+
+class shader_with_shadows : public ishader
+{
+public:
+    shader_with_shadows(
+            unique_ptr<ishader> shader,
+            const z_buffer& shadow_zbuf,
+            const mat4& shadow_xform);
+
+    virtual vec3 vertex(
+            const mat4& viewmat,
+            const vec3& v) const;
+
+    virtual frag_color fragment(
+            const vec3& bary,
+            const mat3& verts,
+            const mat3x2& tex_coords,
+            const mat3& vert_norms) const;
+
+private:
+    const unique_ptr<ishader> primary_shader;
+    const z_buffer shadow_zbuf;
+    const mat4 shadow_xform;
 };
 
 #endif //__SHADERS_H__

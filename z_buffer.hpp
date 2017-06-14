@@ -20,9 +20,9 @@ typedef struct z_buffer
         }
     }
 
-    bool is_oob(int x, int y);
+    bool is_oob(int x, int y) const;
 
-    float get(int x, int y);
+    float get(int x, int y) const;
 
     void set(int x, int y, float zval);
 }

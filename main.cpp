@@ -10,6 +10,7 @@
 #include <cmath>
 #include <chrono>
 #include <glm/glm.hpp>
+#include <memory>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
@@ -71,7 +72,10 @@ int main(int argc, char** argv)
     //          bumped_texture_shader shader(tex_file, normalmap_file);
     //          phong_shader shader(tex_file, normalmap_file, specular_file);
     //          phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
-    shadow_shader shader;
+    //          shadow_shader shader;
+    shader_with_shadows shader(std::make_unique<shadow_shader>(),
+            shadow_zbuf, shadowpass_viewmat * inverse(viewmat));
+
 
     // render the model
     auto starttime = high_resolution_clock::now();

@@ -1,11 +1,11 @@
 #include "z_buffer.hpp"
 
-bool z_buffer::is_oob(int x, int y)
+bool z_buffer::is_oob(int x, int y) const
 {
     return x >= w || x < 0 || y >= h || y < 0;
 }
 
-float z_buffer::get(int x, int y)
+float z_buffer::get(int x, int y) const
 {
     if (is_oob(x, y))
     {
