@@ -23,7 +23,7 @@ using std::abs;
 using std::max;
 using std::pow;
 
-static const auto to_cam = normalize(camera_position() - camera_target());
+static const auto to_cam = to_camera();
 
 //
 // NORMAL SHADER
@@ -329,16 +329,35 @@ frag_color shader_with_shadows::fragment(
         const mat3x2& tex_coords,
         const mat3& vert_norms) const
 {
+
+
     auto v = bary_lerp(verts[0], verts[1], verts[2], bary);
     auto shadow_v = shadow_xform * vec4(v, 1);
     shadow_v = shadow_v / shadow_v.w;
 
     auto shadow_z_val = shadow_zbuf.get(shadow_v.x, shadow_v.y);
+    //
+    // NUKE DUMMPY PRINTS
+    //
+    //
+    // TODO
+    //
+    //printf("vproj[0] -> vproj: <%f, %f, %f> -> <%f, %f, %f>\n",
+    //       verts[0].x, verts[0].y, verts[0].z, v.x, v.y, v.z);
+    
+    /*
+    printf("vproj -> vshad: <%f, %f, %f> -> <%f, %f, %f>\n",
+            v.x, v.y, v.z, shadow_v.x, shadow_v.y, shadow_v.z);
+            */
 
-    if (shadow_z_val > v.z)
+    printf ("1. shadow_zbuf_val: %f\n"
+            "2. shadow_v.z: %f\n\n",
+            shadow_z_val, shadow_v.z);
+
+    if (shadow_z_val > shadow_v.z)
     {
-        //return { TGAColor(255, 0, 0, 255), true };
-        return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
+        return { TGAColor(255, 0, 0, 255), true };
+        //return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
     }
     else
     {

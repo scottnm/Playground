@@ -36,12 +36,14 @@ void render_triangle (
     {
         for (int y = bboxmin.y; y < bboxmax.y; ++y)
         {
+            //printf("(%d, %d)\t\t", x, y);
             // check to make sure we are in the triangle
             auto bary = barycentric(vs[0], vs[1], vs[2], vec2(x, y));
             if (bary.x < 0 || bary.y < 0 || bary.z < 0) { continue; }
 
             // check to make sure the fragment is above the zdepth
-            auto z_depth = bary_lerp(vs[0].z, vs[1].z, vs[2].z, bary);
+            auto v_interpolated = bary_lerp(vs[0], vs[1], vs[2], bary);
+            auto z_depth = v_interpolated.z; //bary_lerp(vs[0].z, vs[1].z, vs[2].z, bary);
             if (z_depth <= zbuf.get(x, y)) { continue; }
 
             auto frag_color = shader.fragment(bary, vs, vts, vns);
@@ -49,10 +51,15 @@ void render_triangle (
             {
                 img.set(x, y, frag_color.c);
                 zbuf.set(x, y, z_depth);
+                printf("Setting zbuf :: [ %f ] @ <%d, %d> from floating <%f, %f> which rounds too <%d, %d>\n",
+                        z_depth, x, y, v_interpolated.x, v_interpolated.y, (int)v_interpolated.x, (int)v_interpolated.y);
             }
+            //printf("\n");
         }
     }
 }
+
+#include <cstdio>
 void render_model (
         TGAImage& img,
         z_buffer& zbuf,
@@ -64,11 +71,20 @@ void render_model (
     for (auto& face : model.faces)
     {
         auto verts = model.get_verts(face);
+        auto verts_copy = verts;
         if (is_face_visible(verts, to_cam))
         {
             verts[0] = shader.vertex(viewmat, verts[0]);
             verts[1] = shader.vertex(viewmat, verts[1]);
             verts[2] = shader.vertex(viewmat, verts[2]);
+
+            printf("A: <%f, %f, %f> -> <%f, %f, %f>\n"
+                   "B: <%f, %f, %f> -> <%f, %f, %f>\n"
+                   "C: <%f, %f, %f> -> <%f, %f, %f>\n",
+                   verts_copy[0].x, verts_copy[0].y, verts_copy[0].z, verts[0].x, verts[0].y, verts[0].z,
+                   verts_copy[1].x, verts_copy[1].y, verts_copy[1].z, verts[1].x, verts[1].y, verts[1].z,
+                   verts_copy[2].x, verts_copy[2].y, verts_copy[2].z, verts[2].x, verts[2].y, verts[2].z);
+
             auto texture_verts = model.get_texture_verts(face);
             auto vert_norms = model.get_vertex_normals(face);
             render_triangle(img, zbuf, shader, verts, texture_verts, vert_norms);
