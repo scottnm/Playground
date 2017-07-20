@@ -307,7 +307,6 @@ vec3 shadow_shader::vertex(
         const vec3& v) const
 {
     auto res = viewmat * vec4(v, 1);
-    //printf("<%f, %f, %f> -> <%f, %f, %f>\n", v.x, v.y, v.z, res.x, res.y, res.z);
     return res / res.w;
 }
 
@@ -351,48 +350,13 @@ frag_color shader_with_shadows::fragment(
         const mat3x2& tex_coords,
         const mat3& vert_norms) const
 {
-
-
     auto v = bary_lerp(verts[0], verts[1], verts[2], bary);
     auto shadow_v = shadow_xform * vec4(v, 1);
     shadow_v = shadow_v / shadow_v.w;
 
     auto shadow_z_val = shadow_zbuf.get((int)shadow_v.x, (int)shadow_v.y);
-    //
-    // NUKE DUMMPY PRINTS
-    //
-    //
-    // TODO
-    //
-    //printf("vproj[0] -> vproj: <%f, %f, %f> -> <%f, %f, %f>\n",
-    //       verts[0].x, verts[0].y, verts[0].z, v.x, v.y, v.z);
-    
-    /*
-    printf("vproj -> vshad: <%f, %f, %f> -> <%f, %f, %f>\n",
-            v.x, v.y, v.z, shadow_v.x, shadow_v.y, shadow_v.z);
-            */
-
-    /*
-    printf ("look in shadowbuffer at (%d, %d)\n"
-            "1. shadow_zbuf_val: %f\n"
-            "2. shadow_v.z: %f\n\n",
-            (int)shadow_v.x, (int)shadow_v.y,
-            shadow_z_val, shadow_v.z);
-            */
-
     float shadow_coeff = .3 + .7 * (shadow_z_val < shadow_v.z);
     auto frag_c = primary_shader->fragment(bary, verts, tex_coords, vert_norms);
     frag_c.c.scale(shadow_coeff);
     return frag_c;
-    /*
-    if (shadow_z_val > shadow_v.z)
-    {
-        return { TGAColor(255, 0, 0, 255), true };
-        //return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
-    }
-    else
-    {
-        return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
-    }
-    */ 
 }
