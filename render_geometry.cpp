@@ -14,6 +14,9 @@
 using glm::mat3x4;
 using glm::normalize;
 
+bool DEBUG_FLAG = false;
+std::vector<glm::vec4> bboxes;
+
 static bool is_face_visible(mat3x4 verts, vec3 to_cam);
 
 void render_triangle (
@@ -32,11 +35,14 @@ void render_triangle (
     auto maxy = std::max(vs[0].y, std::max(vs[1].y, vs[2].y));
     vec2 bboxmax = {maxx, maxy};
 
-    for (int x = bboxmin.x; x < bboxmax.x; ++x)
+    if (!DEBUG_FLAG) bboxes.push_back(glm::vec4(bboxmin.x, bboxmin.y, bboxmax.x, bboxmax.y));
+
+    for (int x = bboxmin.x; x <= bboxmax.x; ++x)
     {
-        for (int y = bboxmin.y; y < bboxmax.y; ++y)
+        for (int y = bboxmin.y; y <= bboxmax.y; ++y)
         {
-            //printf("(%d, %d)\t\t", x, y);
+//            if (DEBUG_FLAG) printf("(%d, %d)\n", x, y);
+
             // check to make sure we are in the triangle
             auto bary = barycentric(vs[0], vs[1], vs[2], vec2(x, y));
             if (bary.x < 0 || bary.y < 0 || bary.z < 0) { continue; }
@@ -50,11 +56,9 @@ void render_triangle (
             if (frag_color.valid)
             {
                 img.set(x, y, frag_color.c);
-                zbuf.set(x, y, z_depth);
-                printf("Setting zbuf :: [ %f ] @ <%d, %d> from floating <%f, %f> which rounds too <%d, %d>\n",
-                        z_depth, x, y, v_interpolated.x, v_interpolated.y, (int)v_interpolated.x, (int)v_interpolated.y);
+                zbuf.set(x, y, (int)z_depth);
+//                if (!DEBUG_FLAG) printf("Setting zbuf :: [ %d ] @ <%d, %d>\n", (int)z_depth, x, y);
             }
-            //printf("\n");
         }
     }
 }
@@ -68,27 +72,30 @@ void render_model (
         const ishader& shader,
         const vec3 to_cam)
 {
+    printf("SIZE: %d\n", model.faces.size());
     for (auto& face : model.faces)
     {
         auto verts = model.get_verts(face);
         auto verts_copy = verts;
-        if (is_face_visible(verts, to_cam))
-        {
+        //if (is_face_visible(verts, to_cam))
+        //{
             verts[0] = shader.vertex(viewmat, verts[0]);
             verts[1] = shader.vertex(viewmat, verts[1]);
             verts[2] = shader.vertex(viewmat, verts[2]);
 
+            /*
             printf("A: <%f, %f, %f> -> <%f, %f, %f>\n"
                    "B: <%f, %f, %f> -> <%f, %f, %f>\n"
                    "C: <%f, %f, %f> -> <%f, %f, %f>\n",
                    verts_copy[0].x, verts_copy[0].y, verts_copy[0].z, verts[0].x, verts[0].y, verts[0].z,
                    verts_copy[1].x, verts_copy[1].y, verts_copy[1].z, verts[1].x, verts[1].y, verts[1].z,
                    verts_copy[2].x, verts_copy[2].y, verts_copy[2].z, verts[2].x, verts[2].y, verts[2].z);
+                   */
 
             auto texture_verts = model.get_texture_verts(face);
             auto vert_norms = model.get_vertex_normals(face);
             render_triangle(img, zbuf, shader, verts, texture_verts, vert_norms);
-        }
+        //}
     }
 }
 

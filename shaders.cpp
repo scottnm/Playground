@@ -25,6 +25,27 @@ using std::pow;
 
 static const auto to_cam = to_camera();
 
+vec3 simple_normal_shader::vertex(
+        const mat4& viewmat,
+        const vec3& v) const
+{
+    auto res = viewmat * vec4(v, 1);
+    return res / res.w;
+}
+
+frag_color simple_normal_shader::fragment(
+        const vec3& bary,
+        const mat3& verts,
+        const mat3x2& tex_coords,
+        const mat3& vert_norms) const
+{
+    vec3 norm_color = normalize(bary_lerp(vert_norms[0], vert_norms[1],
+                vert_norms[2], bary)) * 255.0f;
+    TGAColor c(abs(norm_color.x), abs(norm_color.y), abs(norm_color.z), 255);
+
+    return frag_color {c, true};
+}
+
 //
 // NORMAL SHADER
 //
@@ -286,6 +307,7 @@ vec3 shadow_shader::vertex(
         const vec3& v) const
 {
     auto res = viewmat * vec4(v, 1);
+    //printf("<%f, %f, %f> -> <%f, %f, %f>\n", v.x, v.y, v.z, res.x, res.y, res.z);
     return res / res.w;
 }
 
@@ -335,7 +357,7 @@ frag_color shader_with_shadows::fragment(
     auto shadow_v = shadow_xform * vec4(v, 1);
     shadow_v = shadow_v / shadow_v.w;
 
-    auto shadow_z_val = shadow_zbuf.get(shadow_v.x, shadow_v.y);
+    auto shadow_z_val = shadow_zbuf.get((int)shadow_v.x, (int)shadow_v.y);
     //
     // NUKE DUMMPY PRINTS
     //
@@ -350,10 +372,19 @@ frag_color shader_with_shadows::fragment(
             v.x, v.y, v.z, shadow_v.x, shadow_v.y, shadow_v.z);
             */
 
-    printf ("1. shadow_zbuf_val: %f\n"
+    /*
+    printf ("look in shadowbuffer at (%d, %d)\n"
+            "1. shadow_zbuf_val: %f\n"
             "2. shadow_v.z: %f\n\n",
+            (int)shadow_v.x, (int)shadow_v.y,
             shadow_z_val, shadow_v.z);
+            */
 
+    float shadow_coeff = .3 + .7 * (shadow_z_val < shadow_v.z);
+    auto frag_c = primary_shader->fragment(bary, verts, tex_coords, vert_norms);
+    frag_c.c.scale(shadow_coeff);
+    return frag_c;
+    /*
     if (shadow_z_val > shadow_v.z)
     {
         return { TGAColor(255, 0, 0, 255), true };
@@ -363,4 +394,5 @@ frag_color shader_with_shadows::fragment(
     {
         return primary_shader->fragment(bary, verts, tex_coords, vert_norms);
     }
+    */ 
 }

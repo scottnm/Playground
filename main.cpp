@@ -8,6 +8,7 @@
 #include "viewmatrix.hpp"
 #include "z_buffer.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <chrono>
 #include <glm/glm.hpp>
@@ -24,25 +25,47 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 
-const static std::string base_dir = "obj/single_tri/";
+const static std::string base_dir = "obj/african_head/";
 const static std::string obj_file = base_dir + "model.obj";
 const static std::string tex_file = base_dir + "diffuse.tga";
 const static std::string normalmap_file = base_dir + "normalmap.tga";
 const static std::string tangent_normalmap_file = base_dir + "tangent_normalmap.tga";
 const static std::string specular_file = base_dir + "specular.tga";
 
-const static auto window_width = 50;
-const static auto window_height = 50;
+const static auto window_width = 500;
+const static auto window_height = 500;
+
+extern bool DEBUG_FLAG;
+extern std::vector<glm::vec4> bboxes;
+
+void print_mat4(const char* name, glm::mat4 m)
+{
+    printf( "NAME: %s\n"
+        "%.3f, %.3f, %.3f, %.3f\n"
+        "%.3f, %.3f, %.3f, %.3f\n"
+        "%.3f, %.3f, %.3f, %.3f\n"
+        "%.3f, %.3f, %.3f, %.3f\n\n\n",
+        name,
+        m[0][0], m[1][0], m[2][0], m[3][0],
+        m[0][1], m[1][1], m[2][1], m[3][1],
+        m[0][2], m[1][2], m[2][2], m[3][2],
+        m[0][3], m[1][3], m[2][3], m[3][3]);
+}
 
 int main(int argc, char** argv)
 {
-    // get the view matrix
-    auto screenspace = screenspace_xform(window_width, window_height,
-            window_width, window_height);
+    // TODO: remove debug flag stuff
+    DEBUG_FLAG = false;
 
-    auto shadowpass_viewmat = screenspace
-        * perspective_proj_xform(std::numeric_limits<float>::max())
-        * lookat_xform(to_light() * camera_distance(), vec3(0, 0, 0), vec3(0, 1, 0));
+
+
+    // get the view matrix
+    auto screenspace = screenspace_xform(window_width / 8, window_height / 8,
+            window_width * .75, window_height * .75);
+    auto lookat = lookat_xform(to_light(), camera_target(), vec3(0, 1, 0));
+    auto proj = perspective_proj_xform(std::numeric_limits<float>::max());
+
+    auto shadowpass_viewmat = screenspace * proj * lookat;
 
     // prepare the image to render to
     TGAImage shadow_buf(window_width, window_height, TGAImage::RGB);
@@ -58,6 +81,10 @@ int main(int argc, char** argv)
 
     // render the shadow pass
     printf("SHADOW PASS\n");
+    print_mat4("lookat", lookat);
+    print_mat4("viewport", screenspace);
+    print_mat4("projection", proj);
+    print_mat4("comp", shadowpass_viewmat);
     render_model(shadow_buf, shadow_zbuf, *model_ptr, shadowpass_viewmat,
             shadowpass, to_light());
     printf("\n");
@@ -77,21 +104,56 @@ int main(int argc, char** argv)
     z_buffer zbuf(window_width, window_height);
 
     // select your shader 
-    //          simple_texture_shader shader(tex_file);
+    //        simple_texture_shader shader(tex_file);
     //          normal_shader shader(normalmap_file);
-    //          bumped_texture_shader shader(tex_file, normalmap_file);
-    //          phong_shader shader(tex_file, normalmap_file, specular_file);
+    //          simple_normal_shader shader;
+    //         bumped_texture_shader shader(tex_file, normalmap_file);
+              phong_shader shader(tex_file, normalmap_file, specular_file);
     //          phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
     //          shadow_shader shader;
-    shader_with_shadows shader(std::make_unique<shadow_shader>(),
+    /*
+    shader_with_shadows shader(std::make_unique<normal_shader>(normalmap_file),
             shadow_zbuf,
-            //inverse(viewmat));
             shadowpass_viewmat * inverse(viewmat));
+    */
+    /*
+    shader_with_shadows shader(
+            std::make_unique<phong_tangent_space_shader>(tex_file, tangent_normalmap_file, specular_file),
+            shadow_zbuf,
+            shadowpass_viewmat * inverse(viewmat));
+            */
+
+    std::sort(bboxes.begin(), bboxes.end(),
+            [](glm::vec4 a, glm::vec4 b)
+            {
+                if (a.x == b.x)
+                {
+                    if (a.y == b.y)
+                    {
+                        if (a.z == b.z)
+                        {
+                            return a.w < b.w;
+                        }
+                        return a.z < b.z;
+                    }
+                    return a.y < b.y;
+                }
+                return a.x < b.x;
+            });
+
+    for(auto& v : bboxes)
+    {
+        printf("bbmin: (%f, %f)\t"
+               "bbmax: (%f, %f)\n",
+               v.x, v.y, v.z, v.w);
+
+    }
 
 
     // render the model
     printf("PRIMARY PASS\n");
 
+    /*
     { // test
         // TODO
         //
@@ -140,6 +202,9 @@ int main(int argc, char** argv)
                     vec3(0,0,0)),
              dummyvts, dummyvns);
     }
+    */
+
+    DEBUG_FLAG = true;
 
     auto starttime = high_resolution_clock::now();
     render_model(image, zbuf, *model_ptr, viewmat, shader, to_camera());

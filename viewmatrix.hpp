@@ -12,10 +12,10 @@ mat4 perspective_proj_xform(
         float camera_distance);
 
 mat4 screenspace_xform(
-        int screen_width,
-        int screen_height,
-        int x_scale,
-        int y_scale);
+        int x,
+        int y,
+        int width,
+        int height);
 
 mat4 lookat_xform(
         glm::vec3 eye,

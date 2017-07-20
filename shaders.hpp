@@ -10,6 +10,20 @@
 using std::string;
 using std::unique_ptr;
 
+class simple_normal_shader : public ishader
+{
+public:
+    virtual vec3 vertex(
+            const mat4& viewmat,
+            const vec3& v) const;
+
+    virtual frag_color fragment(
+            const vec3& bary,
+            const mat3& verts,
+            const mat3x2& tex_coords,
+            const mat3& vert_norms) const;
+};
+
 class normal_shader : public ishader
 {
 public:
