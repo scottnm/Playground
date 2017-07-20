@@ -1,8 +1,8 @@
 #include "camera.hpp"
 #include <glm/glm.hpp>
 
-static const auto eye = glm::vec3(1.25, 1, 1.25);
-static const auto target = glm::vec3(-0.2, 0, 0.1);
+static const auto eye = glm::vec3(1, 1, 4);
+static const auto target = glm::vec3(0, 0, 0);
 static const auto up = glm::vec3(0, 1, 0);
 
 vec3 to_camera(void)

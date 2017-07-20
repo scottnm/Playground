@@ -39,15 +39,14 @@ void render_triangle (
             if (bary.x < 0 || bary.y < 0 || bary.z < 0) { continue; }
 
             // check to make sure the fragment is above the zdepth
-            auto v_interpolated = bary_lerp(vs[0], vs[1], vs[2], bary);
-            auto z_depth = v_interpolated.z; //bary_lerp(vs[0].z, vs[1].z, vs[2].z, bary);
+            auto z_depth = bary_lerp(vs[0].z, vs[1].z, vs[2].z, bary);
             if (z_depth <= zbuf.get(x, y)) { continue; }
 
             auto frag_color = shader.fragment(bary, vs, vts, vns);
             if (frag_color.valid)
             {
                 img.set(x, y, frag_color.c);
-                zbuf.set(x, y, (int)z_depth);
+                zbuf.set(x, y, z_depth);
             }
         }
     }

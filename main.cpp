@@ -11,14 +11,7 @@
 #include <cmath>
 #include <chrono>
 #include <glm/glm.hpp>
-#include <limits>
 #include <memory>
-#include <cstdio>
-
-#include <glm/mat3x2.hpp>
-#include <glm/mat3x3.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
@@ -31,8 +24,8 @@ const static std::string normalmap_file = base_dir + "normalmap.tga";
 const static std::string tangent_normalmap_file = base_dir + "tangent_normalmap.tga";
 const static std::string specular_file = base_dir + "specular.tga";
 
-const static auto window_width = 500;
-const static auto window_height = 500;
+const static auto window_width = 800;
+const static auto window_height = 800;
 
 int main(int argc, char** argv)
 {
@@ -74,24 +67,17 @@ int main(int argc, char** argv)
     z_buffer zbuf(window_width, window_height);
 
     // select your shader 
-    //        simple_texture_shader shader(tex_file);
-    //          normal_shader shader(normalmap_file);
-    //          simple_normal_shader shader;
-    //         bumped_texture_shader shader(tex_file, normalmap_file);
-    phong_shader shader(tex_file, normalmap_file, specular_file);
-    //          phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
-    //          shadow_shader shader;
-    /*
-    shader_with_shadows shader(std::make_unique<normal_shader>(normalmap_file),
-            shadow_zbuf,
-            shadowpass_viewmat * inverse(viewmat));
-    */
-    /*
+    //  simple_texture_shader shader(tex_file);
+    //  normal_shader shader(normalmap_file);
+    //  simple_normal_shader shader;
+    //  bumped_texture_shader shader(tex_file, normalmap_file);
+    //  phong_shader shader(tex_file, normalmap_file, specular_file);
+    //  phong_tangent_space_shader shader(tex_file, tangent_normalmap_file, specular_file);
+    //  shadow_shader shader;
     shader_with_shadows shader(
             std::make_unique<phong_tangent_space_shader>(tex_file, tangent_normalmap_file, specular_file),
             shadow_zbuf,
             shadowpass_viewmat * inverse(viewmat));
-            */
 
     auto starttime = high_resolution_clock::now();
     render_model(image, zbuf, *model_ptr, viewmat, shader, to_camera());

@@ -23,7 +23,7 @@ using std::abs;
 using std::max;
 using std::pow;
 
-static const auto to_cam = to_camera();
+static const auto to_cam = glm::normalize(to_camera());
 
 vec3 simple_normal_shader::vertex(
         const mat4& viewmat,
