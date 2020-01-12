@@ -11,7 +11,7 @@ struct Color {
 struct PPMBuffer {
     width: usize,
     height: usize,
-    pixels: Vec<Color>,
+    pixels: Box<[Color]>,
 }
 
 impl PPMBuffer {
@@ -19,7 +19,7 @@ impl PPMBuffer {
         PPMBuffer {
             width,
             height,
-            pixels: vec![Color { r: 0, g: 0, b: 0 }; width * height],
+            pixels: vec![Color { r: 0, g: 0, b: 0 }; width * height].into_boxed_slice(),
         }
     }
 
