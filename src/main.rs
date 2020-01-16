@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Write;
-use std::ops::{Add, Div, Mul};
+use std::ops::{Add, Sub, Div, Mul};
+use std::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct Rgb<T> {
@@ -67,35 +68,13 @@ fn raycast_bg_blue(r: Ray) -> Rgb<u8> {
 fn raycast_bg_rainbow(r: Ray) -> Rgb<u8> {
     let unit_ray = unit_vector(r.dir);
     let t = (unit_ray.y + 1.0) * 0.5;
-    let h = t * 360.0;
+    let h_unbounded = t * 360.0;
 
-    hsv_to_rgb(Hsv { h: h as u16, s: 0.5, v: 0.75 })
-}
+    // shift the hue to make the middle of the rainbow standout against the blue background
+    let h_unbounded = h_unbounded + 200.0;
+    let h = (h_unbounded as u16) % 360;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_hsv_to_rgb_1() {
-        let hsv = Hsv { h: 355, s: 0.5, v: 0.75 };
-        let rgb = Rgb { r: 191, g: 95, b: 103 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
-    }
-
-    #[test]
-    fn test_hsv_to_rgb_2() {
-        let hsv = Hsv { h: 240, s: 0.1, v: 0.99 };
-        let rgb = Rgb { r: 227, g: 227, b: 252 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
-    }
-
-    #[test]
-    fn test_hsv_to_rgb_3() {
-        let hsv = Hsv { h: 240, s: 0.99, v: 0.1 };
-        let rgb = Rgb { r: 0, g: 0, b: 25 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
-    }
+    hsv_to_rgb(Hsv { h, s: 0.8, v: 0.8 })
 }
 
 struct PPMBuffer {
@@ -136,7 +115,7 @@ impl PPMBuffer {
             .unwrap_or_else(|_| panic!("Failed to write PPM header to {}", filename));
 
         // Write the PPM body
-        // @Improvement: add a get_row that returns a row span to avoid some unnecessary
+        // TODO: add a get_row that returns a row span to avoid some unnecessary
         // multiplications for each `self.get` call
         for row in (0..self.height).rev() {
             for col in 0..self.width {
@@ -159,15 +138,31 @@ struct Vec3 {
 
 impl Vec3 {
     fn mag(&self) -> f32 {
-        let square_comp_sum = (self.x * self.x) + (self.y * self.y) + (self.z * self.z);
-        square_comp_sum.sqrt()
+        dot(*self, *self).sqrt()
     }
+}
+
+impl fmt::Display for Vec3 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {}, {})", self.x, self.y, self.z)
+    }
+}
+
+fn dot(v1: Vec3, v2: Vec3) -> f32 {
+    (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z)
 }
 
 impl Add<Vec3> for Vec3 {
     type Output = Vec3;
     fn add(self, rhs: Vec3) -> Vec3 {
         Vec3 { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
+    }
+}
+
+impl Sub<Vec3> for Vec3 {
+    type Output = Vec3;
+    fn sub(self, rhs: Vec3) -> Vec3 {
+        Vec3 { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
     }
 }
 
@@ -189,18 +184,58 @@ fn unit_vector(v: Vec3) -> Vec3 {
     v / v.mag()
 }
 
+// A ray is described as a starting point, the origin, and a direction to travel. Points along the
+// ray are parameterized as P(t) = origin + (dir * t).
 struct Ray {
     origin: Vec3,
     dir: Vec3,
 }
 
+struct Sphere {
+    center: Vec3,
+    radius: f32,
+}
+
+fn ray_hit_sphere(r: &Ray, s: &Sphere) -> bool {
+    // The points along the surface of the sphere are described as...
+    //    (X-Cx)^2 + (Y - Cy)^2 + (Z-Cz)^2 = R^2
+    // In english, "Any point at a distance of exactly the radius is on the surface of the sphere"
+    //
+    // If we are interested in understanding whether a ray intersects with the surface of the
+    // sphere we can use our parameterized ray function to solve!
+    //
+    //    (P(t).x-Cx)^2 + (P(t).y-Cy)^2 + (P(Z).z-Cz)^2 = R^2
+    //    dot(P(t)-C, P(t)-C) = R^2
+    //    A = RayOrigin, B = RayDir, C = SphereCenter
+    //    dot(A+B*t-C, A+B*t-C) = R^2
+    //    t^2 * dot(B,B) + 2t * dot(B,A-C) + dot(A-C,A-C) - R^2 = 0
+    //
+    // Now we have a quadratic equation!
+    //
+    // The quadratic formula...
+    //     x = (-b +/- sqrt(b^2 - 4ac)) / 2a
+    // ... can be used to solve for solutions to quadratic functions. In general, since we only
+    // care about knowing whether something hit (and not where) we only care about the sqrt portion
+    // of the formula.
+    // - When the sqrt root operand is positive there are 2 solutions
+    // - When the sqrt root operand is zero there is 1 solution
+    // - When the sqrt root operand is negative there are no solutions
+    let a = dot(r.dir, r.dir);
+    let b = 2.0 * dot(r.dir, r.origin - s.center);
+    let c = dot(r.origin - s.center, r.origin - s.center) - (s.radius * s.radius);
+    let discriminant = b*b - 4.0*a*c;
+
+    discriminant >= 0.0
+}
+
 fn main() {
     const WIDTH: usize = 200;
     const HEIGHT: usize = 100;
+    const BG_DEPTH: f32 = -50.0;
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
-        println!("Usage: pathtrace_rs.exe [filename]");
+        println!("Usage: raytrace_rs.exe [filename]");
         return;
     }
 
@@ -209,39 +244,93 @@ fn main() {
     // Fill the PPM Buffer
     let mut ppm_buffer = PPMBuffer::new(WIDTH, HEIGHT);
 
+    fn make_look_vector (col: usize, row: usize, width: usize, height: usize) -> Vec3 {
+        Vec3 {
+            x: (col as isize - width as isize / 2) as f32,
+            y: (row as isize - height as isize / 2) as f32,
+            z: BG_DEPTH,
+        }
+    };
+
     // Render the background
     let eye = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
     for row in (0..ppm_buffer.height).rev() {
         for col in 0..ppm_buffer.width {
             // look at each pixel
-            let look_dir = Vec3 {
-                x: (col as isize - ppm_buffer.width as isize / 2) as f32,
-                y: (row as isize - ppm_buffer.height as isize / 2) as f32,
-                z: -1.0,
-            };
+            let look_dir = make_look_vector(col, row, ppm_buffer.width, ppm_buffer.height);
             let look_ray = Ray { origin: eye, dir: look_dir };
-            ppm_buffer.set(row, col, raycast_bg_rainbow(look_ray));
+            ppm_buffer.set(row, col, raycast_bg_blue(look_ray));
         }
     }
 
-    // Render the embedded rainbow gradient
-    let inner_rect_height = ppm_buffer.height / 2;
-    let inner_rect_width = ppm_buffer.width / 2;
-    for row in (0..inner_rect_height).rev() {
-        for col in 0..inner_rect_width {
-            let color_ratio = Rgb {
-                r: col as f32 / inner_rect_width as f32,
-                g: row as f32 / inner_rect_height as f32,
-                b: 0.2,
-            };
+    // Render the rainbow spheres
+    for row in (0..ppm_buffer.height).rev() {
+        for col in 0..ppm_buffer.width {
+            let look_dir = make_look_vector(col, row, ppm_buffer.width, ppm_buffer.height);
+            let look_ray = Ray { origin: eye, dir: look_dir };
 
-            ppm_buffer.set(
-                row + inner_rect_height / 2,
-                col + inner_rect_width / 2,
-                rgb_f32_to_u8(color_ratio),
-            );
+            const SPHERES: [Sphere; 4] = [
+                Sphere { center: Vec3 { x: 0.0, y: 0.0, z: -50.0 }, radius: 5.0 },
+                Sphere { center: Vec3 { x: -25.0, y: 0.0, z: -50.0 }, radius: 10.0 },
+                Sphere { center: Vec3 { x: 0.0, y: 25.0, z: -50.0 }, radius: 5.0 },
+                Sphere { center: Vec3 { x: 30.0, y: -10.0, z: -50.0 }, radius: 15.0 },
+            ];
+
+            for sphere in &SPHERES {
+                if ray_hit_sphere(&look_ray, sphere) {
+                    ppm_buffer.set(row, col, raycast_bg_rainbow(look_ray));
+                    // TODO: support translucent spheres
+                    // For now if we intersect with a sphere we don't need to worry about checking
+                    // for other sphere interactions at this pixel.
+                    break;
+                }
+            }
         }
     }
 
     ppm_buffer.write_to_file(filename);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hsv_to_rgb_1() {
+        let hsv = Hsv { h: 355, s: 0.5, v: 0.75 };
+        let rgb = Rgb { r: 191, g: 95, b: 103 };
+        assert_eq!(hsv_to_rgb(hsv), rgb);
+    }
+
+    #[test]
+    fn test_hsv_to_rgb_2() {
+        let hsv = Hsv { h: 240, s: 0.1, v: 0.99 };
+        let rgb = Rgb { r: 227, g: 227, b: 252 };
+        assert_eq!(hsv_to_rgb(hsv), rgb);
+    }
+
+    #[test]
+    fn test_hsv_to_rgb_3() {
+        let hsv = Hsv { h: 240, s: 0.99, v: 0.1 };
+        let rgb = Rgb { r: 0, g: 0, b: 25 };
+        assert_eq!(hsv_to_rgb(hsv), rgb);
+    }
+
+    #[test]
+    fn test_ray_hit_sphere() {
+        let ray = Ray { origin: Vec3 {x: 0.0, y: 0.0, z: 0.0}, dir: Vec3{x: 0.0, y:0.0, z:-1.0} };
+        let sphere1 = Sphere { center : Vec3 {x: 10.0, y: 0.0, z: 0.0}, radius: 10.0 };
+        let sphere2 = Sphere { center : Vec3 {x: 1.0, y: 0.0, z: 0.0}, radius: 10.0 };
+        assert!(ray_hit_sphere(&ray, &sphere1));
+        assert!(ray_hit_sphere(&ray, &sphere2));
+    }
+
+    #[test]
+    fn test_ray_miss_sphere() {
+        let ray = Ray { origin: Vec3 {x: 0.0, y: 0.0, z: 0.0}, dir: Vec3{x: 0.0, y:0.0, z:-1.0} };
+        let sphere1 = Sphere { center : Vec3 {x: 11.0, y: 0.0, z: 0.0}, radius: 10.0 };
+        let sphere2 = Sphere { center : Vec3 {x: 0.0, y: 200.0, z: 0.0}, radius: 10.0 };
+        assert!(!ray_hit_sphere(&ray, &sphere1));
+        assert!(!ray_hit_sphere(&ray, &sphere2));
+    }
 }
