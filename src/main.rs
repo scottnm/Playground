@@ -1,87 +1,21 @@
-use std::fmt;
+mod color;
+mod math;
+
+use crate::color::*;
+use crate::math::*;
+
 use std::fs::File;
 use std::io::Write;
-use std::ops::{Add, Div, Mul, Sub};
 use std::option::Option;
 
-// FIXME: move into its own abstracted helper file (I don't love the bleed out that rand
-// dependencies have)
 extern crate rand;
 use rand::Rng;
+use rand::SeedableRng;
+use rand::rngs::StdRng;
 
 fn random_deviation<T: Rng>(random_generator: &mut T, factor: f32) -> f32 {
     let sign = if random_generator.gen_bool(0.5) { 1.0 } else { -1.0 };
     sign * factor * random_generator.gen::<f32>()
-}
-
-extern crate num; // used for rgb casting
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Rgb<T> {
-    r: T,
-    g: T,
-    b: T,
-}
-
-impl<T: Mul<Output = T> + Copy> Mul<T> for Rgb<T> {
-    type Output = Self;
-    fn mul(self, rhs: T) -> Self::Output {
-        Self { r: self.r * rhs, g: self.g * rhs, b: self.b * rhs }
-    }
-}
-
-impl<T: Div<Output = T> + Copy> Div<T> for Rgb<T> {
-    type Output = Self;
-    fn div(self, rhs: T) -> Self::Output {
-        Self { r: self.r / rhs, g: self.g / rhs, b: self.b / rhs }
-    }
-}
-
-impl<T: Add<Output = T>> Add for Rgb<T> {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self::Output {
-        Self { r: self.r + rhs.r, g: self.g + rhs.g, b: self.b + rhs.b }
-    }
-}
-
-fn rgb_cast<FT: num::NumCast, TT: num::NumCast>(from: Rgb<FT>) -> Rgb<TT> {
-    Rgb {
-        r: num::cast(from.r).unwrap(),
-        g: num::cast(from.g).unwrap(),
-        b: num::cast(from.b).unwrap(),
-    }
-}
-
-fn ratio_to_rgb(rgbf: Rgb<f32>) -> Rgb<u8> {
-    const ALMOST_MAX: f32 = (std::u8::MAX as f32) - 0.001;
-    rgb_cast(rgbf * ALMOST_MAX)
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Hsv {
-    h: u16, // [0, 360)
-    s: f32,
-    v: f32,
-}
-
-fn hsv_to_rgb(color: Hsv) -> Rgb<u8> {
-    let c: f32 = color.s * color.v;
-    let x: f32 = c * (1.0 - (((color.h as f32 / 60.0) % 2.0) - 1.0).abs()) as f32;
-    let m: f32 = color.v - c;
-
-    let h = color.h % 360; // just wrap my h values to keep things simple
-    let prime = match h {
-        0..=59 => (c, x, 0.0),
-        60..=119 => (x, c, 0.0),
-        120..=179 => (0.0, c, x),
-        180..=239 => (0.0, x, c),
-        240..=299 => (x, 0.0, c),
-        _ => (c, 0.0, x),
-    };
-
-    let prime_to_rgb = |v: f32| -> u8 { ((v + m) * 255.0) as u8 };
-
-    Rgb { r: prime_to_rgb(prime.0), g: prime_to_rgb(prime.1), b: prime_to_rgb(prime.2) }
 }
 
 fn raycast_bg_blue(r: &Ray) -> Rgb<u8> {
@@ -97,7 +31,8 @@ fn raycast_bg_blue(r: &Ray) -> Rgb<u8> {
 fn raycast_bg_rainbow(r: &Ray) -> Rgb<u8> {
     let unit_ray = unit_vector(r.dir);
     let t = (unit_ray.y + 1.0) * 0.5;
-    let h_unbounded = t * 360.0;
+    let repeat_factor = 3.0; // a multiplier to make the rainbow repeat faster
+    let h_unbounded = t * 360.0 * repeat_factor;
 
     // shift the hue to make the middle of the rainbow standout against the blue background
     let h_unbounded = h_unbounded + 200.0;
@@ -156,61 +91,6 @@ impl PPMBuffer {
             }
         }
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
-}
-
-impl Vec3 {
-    fn mag(&self) -> f32 {
-        dot(*self, *self).sqrt()
-    }
-}
-
-impl fmt::Display for Vec3 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {}, {})", self.x, self.y, self.z)
-    }
-}
-
-fn dot(v1: Vec3, v2: Vec3) -> f32 {
-    (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z)
-}
-
-impl Add<Vec3> for Vec3 {
-    type Output = Vec3;
-    fn add(self, rhs: Vec3) -> Vec3 {
-        Vec3 { x: self.x + rhs.x, y: self.y + rhs.y, z: self.z + rhs.z }
-    }
-}
-
-impl Sub<Vec3> for Vec3 {
-    type Output = Vec3;
-    fn sub(self, rhs: Vec3) -> Vec3 {
-        Vec3 { x: self.x - rhs.x, y: self.y - rhs.y, z: self.z - rhs.z }
-    }
-}
-
-impl Mul<f32> for Vec3 {
-    type Output = Vec3;
-    fn mul(self, rhs: f32) -> Vec3 {
-        Vec3 { x: self.x * rhs, y: self.y * rhs, z: self.z * rhs }
-    }
-}
-
-impl Div<f32> for Vec3 {
-    type Output = Vec3;
-    fn div(self, rhs: f32) -> Vec3 {
-        Vec3 { x: self.x / rhs, y: self.y / rhs, z: self.z / rhs }
-    }
-}
-
-fn unit_vector(v: Vec3) -> Vec3 {
-    v / v.mag()
 }
 
 // A ray is described as a starting point, the origin, and a direction to travel. Points along the
@@ -284,8 +164,9 @@ fn cast_ray(ray: &Ray) -> Option<HitRecord> {
     ];
 
     for sphere in &SPHERES {
-        if let Some(hit) = ray_hit_sphere(&ray, sphere) {
-            return Some(hit);
+        let hit = ray_hit_sphere(&ray, sphere);
+        if hit.is_some() {
+            return hit;
         }
     }
 
@@ -313,7 +194,7 @@ fn ray_color(ray: &Ray) -> Rgb<u8> {
     }
 }
 
-fn string_to_randseed(s: &str) -> [u8; 32] {
+fn seed_from_string(s: &str) -> [u8; 32] {
     let mut seed = [0; 32];
     for i in 0..seed.len() {
         seed[i] = if s.len() > i { s.as_bytes()[i] } else { 0 };
@@ -333,10 +214,10 @@ fn main() {
     }
 
     let filename: &str = &args[1];
+    let mut rng = StdRng::from_seed(seed_from_string(filename));
 
     // Fill the PPM Buffer
     let mut ppm_buffer = PPMBuffer::new(WIDTH, HEIGHT);
-    let mut rng: rand::rngs::StdRng = rand::SeedableRng::from_seed(string_to_randseed(filename));
 
     // Render world
     for row in (0..ppm_buffer.height).rev() {
@@ -367,29 +248,8 @@ fn main() {
 }
 
 #[cfg(test)]
-mod tests {
+mod raytracer_tests {
     use super::*;
-
-    #[test]
-    fn test_hsv_to_rgb_1() {
-        let hsv = Hsv { h: 355, s: 0.5, v: 0.75 };
-        let rgb = Rgb { r: 191, g: 95, b: 103 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
-    }
-
-    #[test]
-    fn test_hsv_to_rgb_2() {
-        let hsv = Hsv { h: 240, s: 0.1, v: 0.99 };
-        let rgb = Rgb { r: 227, g: 227, b: 252 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
-    }
-
-    #[test]
-    fn test_hsv_to_rgb_3() {
-        let hsv = Hsv { h: 240, s: 0.99, v: 0.1 };
-        let rgb = Rgb { r: 0, g: 0, b: 25 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
-    }
 
     #[test]
     fn test_ray_hit_sphere() {
@@ -397,8 +257,8 @@ mod tests {
             Ray { origin: Vec3 { x: 0.0, y: 0.0, z: 0.0 }, dir: Vec3 { x: 0.0, y: 0.0, z: -1.0 } };
         let sphere1 = Sphere { center: Vec3 { x: 10.0, y: 0.0, z: 0.0 }, radius: 10.0 };
         let sphere2 = Sphere { center: Vec3 { x: 1.0, y: 0.0, z: 0.0 }, radius: 10.0 };
-        assert!(ray_hit_sphere(&ray, &sphere1));
-        assert!(ray_hit_sphere(&ray, &sphere2));
+        assert!(ray_hit_sphere(&ray, &sphere1).is_some());
+        assert!(ray_hit_sphere(&ray, &sphere2).is_some());
     }
 
     #[test]
@@ -407,7 +267,7 @@ mod tests {
             Ray { origin: Vec3 { x: 0.0, y: 0.0, z: 0.0 }, dir: Vec3 { x: 0.0, y: 0.0, z: -1.0 } };
         let sphere1 = Sphere { center: Vec3 { x: 11.0, y: 0.0, z: 0.0 }, radius: 10.0 };
         let sphere2 = Sphere { center: Vec3 { x: 0.0, y: 200.0, z: 0.0 }, radius: 10.0 };
-        assert!(!ray_hit_sphere(&ray, &sphere1));
-        assert!(!ray_hit_sphere(&ray, &sphere2));
+        assert!(ray_hit_sphere(&ray, &sphere1).is_none());
+        assert!(ray_hit_sphere(&ray, &sphere2).is_none());
     }
 }
