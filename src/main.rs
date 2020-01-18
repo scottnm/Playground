@@ -4,6 +4,18 @@ use std::io::Write;
 use std::ops::{Add, Div, Mul, Sub};
 use std::option::Option;
 
+// FIXME: move into its own abstracted helper file (I don't love the bleed out that rand
+// dependencies have)
+extern crate rand;
+use rand::Rng;
+
+fn random_deviation<T: Rng>(random_generator: &mut T, factor: f32) -> f32 {
+    let sign = if random_generator.gen_bool(0.5) { 1.0 } else { -1.0 };
+    sign * factor * random_generator.gen::<f32>()
+}
+
+extern crate num; // used for rgb casting
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct Rgb<T> {
     r: T,
@@ -18,6 +30,13 @@ impl<T: Mul<Output = T> + Copy> Mul<T> for Rgb<T> {
     }
 }
 
+impl<T: Div<Output = T> + Copy> Div<T> for Rgb<T> {
+    type Output = Self;
+    fn div(self, rhs: T) -> Self::Output {
+        Self { r: self.r / rhs, g: self.g / rhs, b: self.b / rhs }
+    }
+}
+
 impl<T: Add<Output = T>> Add for Rgb<T> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
@@ -25,8 +44,17 @@ impl<T: Add<Output = T>> Add for Rgb<T> {
     }
 }
 
-fn rgb_f32_to_u8(rgbf: Rgb<f32>) -> Rgb<u8> {
-    Rgb { r: (rgbf.r * 255.99) as u8, g: (rgbf.g * 255.99) as u8, b: (rgbf.b * 255.99) as u8 }
+fn rgb_cast<FT: num::NumCast, TT: num::NumCast>(from: Rgb<FT>) -> Rgb<TT> {
+    Rgb {
+        r: num::cast(from.r).unwrap(),
+        g: num::cast(from.g).unwrap(),
+        b: num::cast(from.b).unwrap(),
+    }
+}
+
+fn ratio_to_rgb(rgbf: Rgb<f32>) -> Rgb<u8> {
+    const ALMOST_MAX: f32 = (std::u8::MAX as f32) - 0.001;
+    rgb_cast(rgbf * ALMOST_MAX)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -56,17 +84,17 @@ fn hsv_to_rgb(color: Hsv) -> Rgb<u8> {
     Rgb { r: prime_to_rgb(prime.0), g: prime_to_rgb(prime.1), b: prime_to_rgb(prime.2) }
 }
 
-fn raycast_bg_blue(r: Ray) -> Rgb<u8> {
+fn raycast_bg_blue(r: &Ray) -> Rgb<u8> {
     let unit_direction = unit_vector(r.dir);
     let t = 0.5 * (unit_direction.y + 1.0);
     let start_white = Rgb { r: 1.0, g: 1.0, b: 1.0 };
     let end_blue = Rgb { r: 0.5, g: 0.7, b: 1.0 };
     let lerped_blue = start_white * (1.0 - t) + end_blue * t;
 
-    rgb_f32_to_u8(lerped_blue)
+    ratio_to_rgb(lerped_blue)
 }
 
-fn raycast_bg_rainbow(r: Ray) -> Rgb<u8> {
+fn raycast_bg_rainbow(r: &Ray) -> Rgb<u8> {
     let unit_ray = unit_vector(r.dir);
     let t = (unit_ray.y + 1.0) * 0.5;
     let h_unbounded = t * 360.0;
@@ -246,6 +274,53 @@ fn ray_hit_sphere(r: &Ray, s: &Sphere) -> Option<HitRecord> {
     }
 }
 
+fn cast_ray(ray: &Ray) -> Option<HitRecord> {
+    // TODO: enable not hardcoding the list of spheres/surfaces
+    const SPHERES: [Sphere; 4] = [
+        Sphere { center: Vec3 { x: 0.0, y: 0.0, z: -50.0 }, radius: 5.0 },
+        Sphere { center: Vec3 { x: -25.0, y: 0.0, z: -50.0 }, radius: 10.0 },
+        Sphere { center: Vec3 { x: 0.0, y: 25.0, z: -50.0 }, radius: 5.0 },
+        Sphere { center: Vec3 { x: 30.0, y: -10.0, z: -50.0 }, radius: 15.0 },
+    ];
+
+    for sphere in &SPHERES {
+        if let Some(hit) = ray_hit_sphere(&ray, sphere) {
+            return Some(hit);
+        }
+    }
+
+    None
+}
+
+fn ray_color(ray: &Ray) -> Rgb<u8> {
+    match cast_ray(&ray) {
+        // Hit a sphere!
+        // EFFECT: left side of spheres are rainbow gradients; right side of spheres are normals visualization
+        // TODO: support translucent spheres
+        Some(hit) => {
+            if hit.normal.x > 0.0 {
+                let norm_as_color_ratio = Rgb { r: hit.normal.x, g: hit.normal.y, b: hit.normal.z };
+                let color_ratio_normalized =
+                    (norm_as_color_ratio + Rgb { r: 1.0, g: 1.0, b: 1.0 }) * 0.5;
+                ratio_to_rgb(color_ratio_normalized)
+            } else {
+                raycast_bg_rainbow(ray)
+            }
+        }
+
+        // Hit no surfaces, render a background
+        None => raycast_bg_blue(ray),
+    }
+}
+
+fn string_to_randseed(s: &str) -> [u8; 32] {
+    let mut seed = [0; 32];
+    for i in 0..seed.len() {
+        seed[i] = if s.len() > i { s.as_bytes()[i] } else { 0 };
+    }
+    seed
+}
+
 fn main() {
     const WIDTH: usize = 400;
     const HEIGHT: usize = 200;
@@ -261,60 +336,30 @@ fn main() {
 
     // Fill the PPM Buffer
     let mut ppm_buffer = PPMBuffer::new(WIDTH, HEIGHT);
+    let mut rng: rand::rngs::StdRng = rand::SeedableRng::from_seed(string_to_randseed(filename));
 
-    fn make_look_vector(col: usize, row: usize, width: usize, height: usize) -> Vec3 {
-        Vec3 {
-            x: (col as isize - width as isize / 2) as f32,
-            y: (row as isize - height as isize / 2) as f32,
-            z: BG_DEPTH,
-        }
-    };
-
-    // Render the background
-    let eye = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+    // Render world
     for row in (0..ppm_buffer.height).rev() {
         for col in 0..ppm_buffer.width {
-            // look at each pixel
-            let look_dir = make_look_vector(col, row, ppm_buffer.width, ppm_buffer.height);
-            let look_ray = Ray { origin: eye, dir: look_dir };
-            ppm_buffer.set(row, col, raycast_bg_blue(look_ray));
-        }
-    }
+            let mut sample_sum = Rgb::<u64> { r: 0, g: 0, b: 0 };
 
-    // Render the rainbow spheres
-    for row in (0..ppm_buffer.height).rev() {
-        for col in 0..ppm_buffer.width {
-            let look_dir = make_look_vector(col, row, ppm_buffer.width, ppm_buffer.height);
-            let look_ray = Ray { origin: eye, dir: look_dir };
+            const AA_SAMPLE_SIZE: u64 = 8;
+            for _s in 0..AA_SAMPLE_SIZE {
+                const EYE: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+                let sample_col = col as f32 + random_deviation(&mut rng, 0.5);
+                let sample_row = row as f32 + random_deviation(&mut rng, 0.5);
+                let look_dir = Vec3 {
+                    x: sample_col - ppm_buffer.width as f32 / 2.0,
+                    y: sample_row - ppm_buffer.height as f32 / 2.0,
+                    z: BG_DEPTH,
+                };
 
-            const SPHERES: [Sphere; 4] = [
-                Sphere { center: Vec3 { x: 0.0, y: 0.0, z: -50.0 }, radius: 5.0 },
-                Sphere { center: Vec3 { x: -25.0, y: 0.0, z: -50.0 }, radius: 10.0 },
-                Sphere { center: Vec3 { x: 0.0, y: 25.0, z: -50.0 }, radius: 5.0 },
-                Sphere { center: Vec3 { x: 30.0, y: -10.0, z: -50.0 }, radius: 15.0 },
-            ];
-
-            for sphere in &SPHERES {
-                if let Some(hit) = ray_hit_sphere(&look_ray, sphere) {
-                    // Make the left side of the sphere rainbow gradient
-                    // Make the right side of the sphere normals visualization
-                    let color = if hit.normal.x > 0.0 {
-                        let norm_as_color_ratio =
-                            Rgb { r: hit.normal.x, g: hit.normal.y, b: hit.normal.z };
-                        let color_ratio_normalized =
-                            (norm_as_color_ratio + Rgb { r: 1.0, g: 1.0, b: 1.0 }) * 0.5;
-                        rgb_f32_to_u8(color_ratio_normalized)
-                    } else {
-                        raycast_bg_rainbow(look_ray)
-                    };
-
-                    ppm_buffer.set(row, col, color);
-                    // TODO: support translucent spheres
-                    // For now if we intersect with a sphere we don't need to worry about checking
-                    // for other sphere interactions at this pixel.
-                    break;
-                }
+                let look_ray = Ray { origin: EYE, dir: look_dir };
+                sample_sum = sample_sum + rgb_cast(ray_color(&look_ray));
             }
+
+            let sampled_color = rgb_cast(sample_sum / AA_SAMPLE_SIZE);
+            ppm_buffer.set(row, col, sampled_color);
         }
     }
 
