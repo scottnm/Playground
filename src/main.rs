@@ -1,7 +1,8 @@
+use std::fmt;
 use std::fs::File;
 use std::io::Write;
-use std::ops::{Add, Sub, Div, Mul};
-use std::fmt;
+use std::ops::{Add, Div, Mul, Sub};
+use std::option::Option;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct Rgb<T> {
@@ -196,7 +197,16 @@ struct Sphere {
     radius: f32,
 }
 
-fn ray_hit_sphere(r: &Ray, s: &Sphere) -> bool {
+struct HitRecord {
+    point: Vec3,
+    normal: Vec3,
+}
+
+fn point_on_ray(r: &Ray, t: f32) -> Vec3 {
+    r.origin + r.dir * t
+}
+
+fn ray_hit_sphere(r: &Ray, s: &Sphere) -> Option<HitRecord> {
     // The points along the surface of the sphere are described as...
     //    (X-Cx)^2 + (Y - Cy)^2 + (Z-Cz)^2 = R^2
     // In english, "Any point at a distance of exactly the radius is on the surface of the sphere"
@@ -223,15 +233,23 @@ fn ray_hit_sphere(r: &Ray, s: &Sphere) -> bool {
     let a = dot(r.dir, r.dir);
     let b = 2.0 * dot(r.dir, r.origin - s.center);
     let c = dot(r.origin - s.center, r.origin - s.center) - (s.radius * s.radius);
-    let discriminant = b*b - 4.0*a*c;
+    let discriminant = b * b - 4.0 * a * c;
 
-    discriminant >= 0.0
+    if discriminant >= 0.0 {
+        // FIXME: guard against negative t values
+        let hit_t = (-b - discriminant.sqrt()) / (2.0 * a);
+        let point = point_on_ray(&r, hit_t);
+        let normal = point - s.center;
+        Some(HitRecord { point, normal: unit_vector(normal) })
+    } else {
+        None
+    }
 }
 
 fn main() {
-    const WIDTH: usize = 200;
-    const HEIGHT: usize = 100;
-    const BG_DEPTH: f32 = -50.0;
+    const WIDTH: usize = 400;
+    const HEIGHT: usize = 200;
+    const BG_DEPTH: f32 = -100.0;
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
@@ -244,7 +262,7 @@ fn main() {
     // Fill the PPM Buffer
     let mut ppm_buffer = PPMBuffer::new(WIDTH, HEIGHT);
 
-    fn make_look_vector (col: usize, row: usize, width: usize, height: usize) -> Vec3 {
+    fn make_look_vector(col: usize, row: usize, width: usize, height: usize) -> Vec3 {
         Vec3 {
             x: (col as isize - width as isize / 2) as f32,
             y: (row as isize - height as isize / 2) as f32,
@@ -277,8 +295,20 @@ fn main() {
             ];
 
             for sphere in &SPHERES {
-                if ray_hit_sphere(&look_ray, sphere) {
-                    ppm_buffer.set(row, col, raycast_bg_rainbow(look_ray));
+                if let Some(hit) = ray_hit_sphere(&look_ray, sphere) {
+                    // Make the left side of the sphere rainbow gradient
+                    // Make the right side of the sphere normals visualization
+                    let color = if hit.normal.x > 0.0 {
+                        let norm_as_color_ratio =
+                            Rgb { r: hit.normal.x, g: hit.normal.y, b: hit.normal.z };
+                        let color_ratio_normalized =
+                            (norm_as_color_ratio + Rgb { r: 1.0, g: 1.0, b: 1.0 }) * 0.5;
+                        rgb_f32_to_u8(color_ratio_normalized)
+                    } else {
+                        raycast_bg_rainbow(look_ray)
+                    };
+
+                    ppm_buffer.set(row, col, color);
                     // TODO: support translucent spheres
                     // For now if we intersect with a sphere we don't need to worry about checking
                     // for other sphere interactions at this pixel.
@@ -318,18 +348,20 @@ mod tests {
 
     #[test]
     fn test_ray_hit_sphere() {
-        let ray = Ray { origin: Vec3 {x: 0.0, y: 0.0, z: 0.0}, dir: Vec3{x: 0.0, y:0.0, z:-1.0} };
-        let sphere1 = Sphere { center : Vec3 {x: 10.0, y: 0.0, z: 0.0}, radius: 10.0 };
-        let sphere2 = Sphere { center : Vec3 {x: 1.0, y: 0.0, z: 0.0}, radius: 10.0 };
+        let ray =
+            Ray { origin: Vec3 { x: 0.0, y: 0.0, z: 0.0 }, dir: Vec3 { x: 0.0, y: 0.0, z: -1.0 } };
+        let sphere1 = Sphere { center: Vec3 { x: 10.0, y: 0.0, z: 0.0 }, radius: 10.0 };
+        let sphere2 = Sphere { center: Vec3 { x: 1.0, y: 0.0, z: 0.0 }, radius: 10.0 };
         assert!(ray_hit_sphere(&ray, &sphere1));
         assert!(ray_hit_sphere(&ray, &sphere2));
     }
 
     #[test]
     fn test_ray_miss_sphere() {
-        let ray = Ray { origin: Vec3 {x: 0.0, y: 0.0, z: 0.0}, dir: Vec3{x: 0.0, y:0.0, z:-1.0} };
-        let sphere1 = Sphere { center : Vec3 {x: 11.0, y: 0.0, z: 0.0}, radius: 10.0 };
-        let sphere2 = Sphere { center : Vec3 {x: 0.0, y: 200.0, z: 0.0}, radius: 10.0 };
+        let ray =
+            Ray { origin: Vec3 { x: 0.0, y: 0.0, z: 0.0 }, dir: Vec3 { x: 0.0, y: 0.0, z: -1.0 } };
+        let sphere1 = Sphere { center: Vec3 { x: 11.0, y: 0.0, z: 0.0 }, radius: 10.0 };
+        let sphere2 = Sphere { center: Vec3 { x: 0.0, y: 200.0, z: 0.0 }, radius: 10.0 };
         assert!(!ray_hit_sphere(&ray, &sphere1));
         assert!(!ray_hit_sphere(&ray, &sphere2));
     }
