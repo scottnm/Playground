@@ -7,9 +7,10 @@ param(
     [Parameter(Mandatory=$true)]
     [String]$OutputName,
 
-    # The number of anti-aliasing samples to collect per pixel
-    # The default value is 8
-    [int]$AntiAliasingSamples = 8,
+    # Determines whether to do a full or quick render pass
+    # The default is quick
+    [validateset("Quick", "Full", "Both")]
+    [String]$RunType,
 
     # The width of the output image
     # The default value is 400
@@ -20,11 +21,28 @@ param(
     [int]$Height = 200
     )
 
-$outputFilePath = "data\$OutputName.ppm"
-$outputMetaFilePath = "data\$OutputName.txt"
-cargo run -- --output $outputFilePath --meta $outputMetaFilePath --antialiasing $AntiAliasingSamples --width $Width --height $Height
-if (!$?) { exit }
+$runSet = [System.Collections.ArrayList]::new()
+if ($RunType -eq "Quick" -or $RunType -eq "Both")
+{
+    $runSet.Add($false) | Out-Null
+}
+if ($RunType -eq "Full" -or $RunType -eq "Both")
+{
+    $runSet.Add($true) | Out-Null
+}
 
-OpenSeeIt.exe $outputFilePath
-echo "Meta:"
-type $outputMetaFilePath
+foreach ($fullRun in $runSet)
+{
+    $AntiAliasingSamples = if ($fullRun) { 100 } else { 8 };
+    $AdjustedOutputName = if ($fullRun) { $OutputName } else { "$($OutputName)_quick" };
+    echo "Starting run: $AdjustedOutputName"
+
+    $outputFilePath = "data\$AdjustedOutputName.ppm"
+    $outputMetaFilePath = "data\$AdjustedOutputName.txt"
+    cargo run -- --output $outputFilePath --meta $outputMetaFilePath --antialiasing $AntiAliasingSamples --width $Width --height $Height
+    if (!$?) { exit }
+
+    OpenSeeIt.exe $outputFilePath
+    echo "Meta:"
+    type $outputMetaFilePath
+}

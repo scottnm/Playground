@@ -1,0 +1,6 @@
+Opts { output: "data\\metal.ppm", meta_output: "data\\metal.txt", aa_sample_size: 100, width: 400, height: 200 }
+
+ Profile    | Time     
+------------|----------
+ File Write |      0s
+ Render     |    100s

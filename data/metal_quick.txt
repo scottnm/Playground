@@ -1,0 +1,6 @@
+Opts { output: "data\\metal_quick.ppm", meta_output: "data\\metal_quick.txt", aa_sample_size: 8, width: 400, height: 200 }
+
+ Profile    | Time     
+------------|----------
+ File Write |      0s
+ Render     |      8s

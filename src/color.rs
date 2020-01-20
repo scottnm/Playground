@@ -49,6 +49,10 @@ pub fn ratio_to_rgb(rgbf: Rgb<f32>) -> Rgb<u8> {
     rgb_cast(rgbf * ALMOST_MAX)
 }
 
+pub fn comp_product(c1: Rgb<f32>, c2: Rgb<f32>) -> Rgb<f32> {
+    Rgb { r: c1.r * c2.r, g: c1.g * c2.g, b: c1.b * c2.b }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Hsv {
     pub h: u16, // [0, 360)

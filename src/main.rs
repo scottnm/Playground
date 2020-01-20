@@ -20,6 +20,14 @@ fn random_deviation<T: Rng>(rng: &mut T, factor: f32) -> f32 {
     sign * factor * rng.gen::<f32>()
 }
 
+fn random_in_unit_sphere<T: Rng>(rng: &mut T) -> Vec3 {
+    unit_vector(Vec3 {
+        x: random_deviation(rng, 1.0),
+        y: random_deviation(rng, 1.0),
+        z: random_deviation(rng, 1.0),
+    })
+}
+
 fn raycast_bg_blue(r: &Ray) -> Rgb<f32> {
     let unit_direction = unit_vector(r.dir);
     let t = 0.5 * (unit_direction.y + 1.0);
@@ -109,8 +117,6 @@ fn write_meta_to_file(options: &cmdline::Opts, profile: &BTreeMap<&str, std::tim
     }
 }
 
-// A ray is described as a starting point, the origin, and a direction to travel. Points along the
-// ray are parameterized as P(t) = origin + (dir * t).
 struct Ray {
     origin: Vec3,
     dir: Vec3,
@@ -119,12 +125,33 @@ struct Ray {
 struct Sphere {
     center: Vec3,
     radius: f32,
+    material_id: MaterialId,
 }
 
 struct HitRecord {
     t: f32,
     point: Vec3,
     normal: Vec3,
+    material_id: MaterialId,
+}
+
+type MaterialId = u8;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Material {
+    id: MaterialId,
+    data: MaterialData,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum MaterialData {
+    Lambert { albedo: Rgb<f32> },
+    Metal { albedo: Rgb<f32>, fuzz: f32 },
+}
+
+struct ScatterRecord {
+    ray: Ray,
+    attenuation: Rgb<f32>,
 }
 
 fn point_on_ray(r: &Ray, t: f32) -> Vec3 {
@@ -155,9 +182,10 @@ fn ray_hit_sphere(r: &Ray, s: &Sphere, t_max: f32) -> Option<HitRecord> {
     // - When the sqrt root operand is positive there are 2 solutions
     // - When the sqrt root operand is zero there is 1 solution
     // - When the sqrt root operand is negative there are no solutions
-    let a = dot(r.dir, r.dir);
-    let b = 2.0 * dot(r.dir, r.origin - s.center);
-    let c = dot(r.origin - s.center, r.origin - s.center) - (s.radius * s.radius);
+    let oc = r.origin - s.center; // from the sphere center to the origin
+    let a = dot_product(r.dir, r.dir);
+    let b = 2.0 * dot_product(r.dir, oc);
+    let c = dot_product(oc, oc) - (s.radius * s.radius);
     let discriminant = b * b - 4.0 * a * c;
 
     if discriminant >= 0.0 {
@@ -174,7 +202,7 @@ fn ray_hit_sphere(r: &Ray, s: &Sphere, t_max: f32) -> Option<HitRecord> {
             if *hit_t > T_MIN && *hit_t < t_max {
                 let point = point_on_ray(&r, *hit_t);
                 let normal = unit_vector(point - s.center);
-                return Some(HitRecord { t: *hit_t, point, normal });
+                return Some(HitRecord { t: *hit_t, point, normal, material_id: s.material_id });
             }
         }
 
@@ -188,13 +216,27 @@ fn ray_hit_sphere(r: &Ray, s: &Sphere, t_max: f32) -> Option<HitRecord> {
 
 fn cast_ray(ray: &Ray) -> Option<HitRecord> {
     // TODO: enable not hardcoding the list of spheres/surfaces
-    const SPHERES: [Sphere; 6] = [
-        Sphere { center: Vec3 { x: 0.0, y: 0.0, z: -0.5 }, radius: 0.05 },
-        Sphere { center: Vec3 { x: -0.25, y: 0.0, z: -0.5 }, radius: 0.1 },
-        Sphere { center: Vec3 { x: 0.0, y: 0.25, z: -0.5 }, radius: 0.05 },
-        Sphere { center: Vec3 { x: 0.30, y: -0.10, z: -0.5 }, radius: 0.15 },
-        Sphere { center: Vec3 { x: 0.0, y: -100.5, z: -1.0 }, radius: 100.0 },
-        Sphere { center: Vec3 { x: 0.0, y: 0.0, z: -1.0 }, radius: 0.5 },
+    const SPHERES: [Sphere; 4] = [
+        Sphere {
+            center: Vec3 { x: 0.0, y: -100.5, z: -1.0 },
+            radius: 100.0,
+            material_id: MAT_YELLOW_MATTE,
+        },
+        Sphere {
+            center: Vec3 { x: 0.0, y: 0.0, z: -1.0 },
+            radius: 0.5,
+            material_id: MAT_PINK_MATTE,
+        },
+        Sphere {
+            center: Vec3 { x: 1.0, y: 0.0, z: -1.0 },
+            radius: 0.5,
+            material_id: MAT_YELLOW_METAL,
+        },
+        Sphere {
+            center: Vec3 { x: -1.0, y: 0.0, z: -1.0 },
+            radius: 0.5,
+            material_id: MAT_GRAY_METAL,
+        },
     ];
 
     let mut t_max = std::f32::MAX;
@@ -210,23 +252,73 @@ fn cast_ray(ray: &Ray) -> Option<HitRecord> {
     closest_hit
 }
 
+const MAT_PINK_MATTE: MaterialId = 0;
+const MAT_YELLOW_MATTE: MaterialId = 1;
+const MAT_YELLOW_METAL: MaterialId = 2;
+const MAT_GRAY_METAL: MaterialId = 3;
+
+fn get_material(id: MaterialId) -> Material {
+    // TODO: enable not hardcoding the list of materials
+    const MATERIALS: [Material; 4] = [
+        Material {
+            id: MAT_PINK_MATTE,
+            data: MaterialData::Lambert { albedo: Rgb { r: 0.8, g: 0.3, b: 0.3 } },
+        },
+        Material {
+            id: MAT_YELLOW_MATTE,
+            data: MaterialData::Lambert { albedo: Rgb { r: 0.8, g: 0.8, b: 0.0 } },
+        },
+        Material {
+            id: MAT_YELLOW_METAL,
+            data: MaterialData::Metal { albedo: Rgb { r: 0.8, g: 0.6, b: 0.2 }, fuzz: 1.0 },
+        },
+        Material {
+            id: MAT_GRAY_METAL,
+            data: MaterialData::Metal { albedo: Rgb { r: 0.8, g: 0.8, b: 0.8 }, fuzz: 0.3 },
+        },
+    ];
+
+    *MATERIALS.iter().find(|&m| m.id == id).unwrap()
+}
+
+fn calculate_scatter<T: Rng>(ray: &Ray, hit: &HitRecord, rng: &mut T) -> Option<ScatterRecord> {
+    let material_data = get_material(hit.material_id).data;
+    match material_data {
+        MaterialData::Lambert { albedo } => {
+            let random_reflect_dir = hit.normal + random_in_unit_sphere(rng);
+            let reflection_ray = Ray { origin: hit.point, dir: random_reflect_dir };
+            Some(ScatterRecord { ray: reflection_ray, attenuation: albedo })
+        }
+
+        MaterialData::Metal { albedo, fuzz } => {
+            let reflection_dir = reflect(ray.dir, hit.normal) + random_in_unit_sphere(rng) * fuzz;
+            let reflected_ray = Ray { origin: hit.point, dir: reflection_dir };
+
+            // a dot product of 0 means we are perpendicular to the reflecting plane
+            if dot_product(reflected_ray.dir, hit.normal) > 0.0 {
+                Some(ScatterRecord { ray: reflected_ray, attenuation: albedo })
+            } else {
+                None
+            }
+        }
+    }
+}
+
 fn ray_color<T: Rng>(ray: &Ray, max_reflects: usize, rng: &mut T) -> Rgb<f32> {
     match cast_ray(&ray) {
         // Hit a sphere!
         // TODO: support translucent spheres
         Some(hit) => {
-            let random_unit_sphere_dir = unit_vector(Vec3 {
-                x: random_deviation(rng, 1.0),
-                y: random_deviation(rng, 1.0),
-                z: random_deviation(rng, 1.0),
-            });
-            let random_reflect_dir = hit.normal + random_unit_sphere_dir;
-            let reflection_ray = Ray { origin: hit.point, dir: random_reflect_dir };
-
             if max_reflects > 0 {
-                ray_color(&reflection_ray, max_reflects - 1, rng) * 0.5
+                match calculate_scatter(&ray, &hit, rng) {
+                    Some(scatter) => {
+                        let color_in_reflection = ray_color(&scatter.ray, max_reflects - 1, rng);
+                        comp_product(color_in_reflection, scatter.attenuation)
+                    }
+                    None => Rgb::all(0.0),
+                }
             } else {
-                raycast_bg_blue(ray)
+                Rgb::all(0.0)
             }
         }
 

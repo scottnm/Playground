@@ -13,16 +13,20 @@ impl Vec3 {
     }
 
     pub fn mag(&self) -> f32 {
-        dot(*self, *self).sqrt()
+        dot_product(*self, *self).sqrt()
     }
 }
 
-pub fn dot(v1: Vec3, v2: Vec3) -> f32 {
+pub fn dot_product(v1: Vec3, v2: Vec3) -> f32 {
     (v1.x * v2.x) + (v1.y * v2.y) + (v1.z * v2.z)
 }
 
 pub fn unit_vector(v: Vec3) -> Vec3 {
     v / v.mag()
+}
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - (unit_vector(n) * 2.0 * dot_product(v, n))
 }
 
 pub fn lerp<T: Mul<f32, Output = T> + Add<Output = T>>(start: T, end: T, t: f32) -> T {
