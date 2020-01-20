@@ -1,5 +1,4 @@
 use std::ops::{Add, Div, Mul, Sub};
-use std::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
@@ -9,7 +8,11 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    fn mag(&self) -> f32 {
+    pub fn all(v: f32) -> Vec3 {
+        Vec3 { x: v, y: v, z: v }
+    }
+
+    pub fn mag(&self) -> f32 {
         dot(*self, *self).sqrt()
     }
 }
@@ -22,10 +25,10 @@ pub fn unit_vector(v: Vec3) -> Vec3 {
     v / v.mag()
 }
 
-impl fmt::Display for Vec3 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {}, {})", self.x, self.y, self.z)
-    }
+pub fn lerp<T: Mul<f32, Output = T> + Add<Output = T>>(start: T, end: T, t: f32) -> T {
+    assert!(t >= 0.0);
+    assert!(t <= 1.0);
+    start * (1.0 - t) + end * t
 }
 
 impl Add<Vec3> for Vec3 {

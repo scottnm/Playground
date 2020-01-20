@@ -9,6 +9,12 @@ pub struct Rgb<T> {
     pub b: T,
 }
 
+impl<T: Copy> Rgb<T> {
+    pub fn all(v: T) -> Rgb<T> {
+        Rgb { r: v, g: v, b: v }
+    }
+}
+
 impl<T: Mul<Output = T> + Copy> Mul<T> for Rgb<T> {
     type Output = Self;
     fn mul(self, rhs: T) -> Self::Output {
@@ -30,7 +36,7 @@ impl<T: Add<Output = T>> Add for Rgb<T> {
     }
 }
 
-pub fn rgb_cast<FT: num::NumCast, TT: num::NumCast>(from: Rgb<FT>) -> Rgb<TT> {
+fn rgb_cast<FT: num::NumCast, TT: num::NumCast>(from: Rgb<FT>) -> Rgb<TT> {
     Rgb {
         r: num::cast(from.r).unwrap(),
         g: num::cast(from.g).unwrap(),
@@ -50,7 +56,7 @@ pub struct Hsv {
     pub v: f32,
 }
 
-pub fn hsv_to_rgb(color: Hsv) -> Rgb<u8> {
+pub fn hsv_to_rgb(color: Hsv) -> Rgb<f32> {
     let c: f32 = color.s * color.v;
     let x: f32 = c * (1.0 - (((color.h as f32 / 60.0) % 2.0) - 1.0).abs()) as f32;
     let m: f32 = color.v - c;
@@ -65,9 +71,7 @@ pub fn hsv_to_rgb(color: Hsv) -> Rgb<u8> {
         _ => (c, 0.0, x),
     };
 
-    let prime_to_rgb = |v: f32| -> u8 { ((v + m) * 255.0) as u8 };
-
-    Rgb { r: prime_to_rgb(prime.0), g: prime_to_rgb(prime.1), b: prime_to_rgb(prime.2) }
+    Rgb { r: prime.0, g: prime.1, b: prime.2 } + Rgb::all(m)
 }
 
 #[cfg(test)]
@@ -78,20 +82,20 @@ mod color_tests {
     fn test_hsv_to_rgb_1() {
         let hsv = Hsv { h: 355, s: 0.5, v: 0.75 };
         let rgb = Rgb { r: 191, g: 95, b: 103 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
+        assert_eq!(ratio_to_rgb(hsv_to_rgb(hsv)), rgb);
     }
 
     #[test]
     fn test_hsv_to_rgb_2() {
         let hsv = Hsv { h: 240, s: 0.1, v: 0.99 };
         let rgb = Rgb { r: 227, g: 227, b: 252 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
+        assert_eq!(ratio_to_rgb(hsv_to_rgb(hsv)), rgb);
     }
 
     #[test]
     fn test_hsv_to_rgb_3() {
         let hsv = Hsv { h: 240, s: 0.99, v: 0.1 };
         let rgb = Rgb { r: 0, g: 0, b: 25 };
-        assert_eq!(hsv_to_rgb(hsv), rgb);
+        assert_eq!(ratio_to_rgb(hsv_to_rgb(hsv)), rgb);
     }
 }
