@@ -1,10 +1,9 @@
+mod dll;
+
 use std::ffi::c_void;
 use std::fmt;
-use std::mem::transmute;
 
 type WinHandle = *const c_void; // HANDLE
-type WinHModule = *const c_void; // HMODULE
-type WinFarProc = *const c_void; // FARPROC
 
 #[repr(C)]
 #[derive(Debug)]
@@ -56,27 +55,21 @@ type FnIcmpSendEcho = extern "stdcall" fn(
     timeout: u32,
 ) -> u32;
 
-extern "stdcall" {
-    fn LoadLibraryA(name: *const u8) -> WinHModule;
-    fn GetProcAddress(module: WinHModule, name: *const u8) -> WinFarProc;
-}
-
 fn main() {
-    let iphlpapi_module: WinHModule = unsafe { LoadLibraryA("IPHLPAPI.dll\0".as_ptr()) };
+    // TODO: cleanup liberal use of unwrap
+    let iphlapi_lib = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
 
     #[allow(non_snake_case)]
-    let IcmpCreateFile: FnIcmpCreateFile =
-        unsafe { transmute(GetProcAddress(iphlpapi_module, "IcmpCreateFile\0".as_ptr())) };
+    let IcmpCreateFile: FnIcmpCreateFile = iphlapi_lib
+        .get_proc("IcmpCreateFile")
+        .expect("IcmpCreateFile not found");
 
     #[allow(non_snake_case)]
-    let IcmpSendEcho: FnIcmpSendEcho =
-        unsafe { transmute(GetProcAddress(iphlpapi_module, "IcmpSendEcho\0".as_ptr())) };
+    let IcmpSendEcho: FnIcmpSendEcho = iphlapi_lib
+        .get_proc("IcmpSendEcho")
+        .expect("IcmpSendEcho not found");
 
     let icmp_file = IcmpCreateFile();
-    println!(
-        "IPHLPAPI module = {:?}, ICMP file = {:?}",
-        iphlpapi_module, icmp_file
-    );
 
     let echo_msg = "can you hear me?";
     let mut reply_buffer = vec![0u8; std::mem::size_of::<IcmpEchoReply>() + 8 + echo_msg.len()];
