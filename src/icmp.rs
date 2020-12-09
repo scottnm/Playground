@@ -23,6 +23,7 @@ impl std::fmt::Debug for Reply<'_> {
 }
 
 pub fn ping(addr: &ipv4::Addr) -> Result<Reply, String> {
+    // TODO: cleanup liberal use of unwrap
     let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
 
     #[allow(non_snake_case)]
