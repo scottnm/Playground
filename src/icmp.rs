@@ -61,11 +61,14 @@ impl Request {
             .expect("IcmpCreateFile not found");
 
         #[allow(non_snake_case)]
+        let IcmpCloseHandle: FnIcmpCloseHandle = iphlp
+            .get_proc("IcmpCloseHandle")
+            .expect("IcmpCloseHandle not found");
+
+        #[allow(non_snake_case)]
         let IcmpSendEcho: FnIcmpSendEcho = iphlp
             .get_proc("IcmpSendEcho")
             .expect("IcmpSendEcho not found");
-
-        let icmp_file = IcmpCreateFile();
 
         let mut reply_buffer =
             vec![0u8; std::mem::size_of::<IcmpEchoReply>() + 8 + self._msg.len()];
@@ -78,16 +81,25 @@ impl Request {
             options_size: 0,
         };
 
-        let echo_result = IcmpSendEcho(
-            icmp_file,
-            *addr,
-            self._msg.as_ptr(),
-            self._msg.len() as u16,
-            Some(&echo_options),
-            reply_buffer.as_mut_ptr(),
-            reply_buffer.len() as u32,
-            self._timeout,
-        );
+        // FIXME: RAII-ify
+        let echo_result = {
+            let icmp_file = IcmpCreateFile();
+
+            let echo_result = IcmpSendEcho(
+                icmp_file,
+                *addr,
+                self._msg.as_ptr(),
+                self._msg.len() as u16,
+                Some(&echo_options),
+                reply_buffer.as_mut_ptr(),
+                reply_buffer.len() as u32,
+                self._timeout,
+            );
+
+            IcmpCloseHandle(icmp_file);
+
+            echo_result
+        };
 
         match echo_result {
             0 => Err(String::from("IcmpSendEcho failed! No replies")),
@@ -130,6 +142,8 @@ pub struct IcmpEchoReply {
 }
 
 type FnIcmpCreateFile = extern "stdcall" fn() -> WinHandle;
+
+type FnIcmpCloseHandle = extern "stdcall" fn(handle: WinHandle);
 
 type FnIcmpSendEcho = extern "stdcall" fn(
     handle: WinHandle,
