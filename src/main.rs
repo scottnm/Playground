@@ -1,3 +1,4 @@
+#[macro_use]
 mod dll;
 mod icmp;
 mod iphlp;

@@ -27,25 +27,30 @@ impl Library {
     }
 }
 
-/*
-#[macro_export]
 macro_rules! bind {
-    ($struct_name:ident $struct_once_name:ident $dll_name:ident $(fn $fn_name:ident($($arg:ident: $type:ty),*) -> $ret:ty;)*) => {
-        struct $struct_name {
-            $($fn_name: extern "stdcall" fn ($($arg: $type),*) -> $ret),*
+    ($dll:literal $(fn $fn_name:ident($($arg:ident: $type:ty),*) -> $ret:ty;)*) => {
+
+        #[allow(non_snake_case)]
+        struct FNS {
+            $(pub $fn_name: extern "stdcall" fn ($($arg: $type),*) -> $ret),*
         }
 
         use once_cell::sync::Lazy;
-        static $struct_once_name: Lazy<Functions> = Lazy::new(|| {
-            let dll_name = format!("{}.dll", stringify!($dll_name));
-            let dll = dll::Library::new(&dll_name).unwrap();
+        static FNS : Lazy<FNS> = Lazy::new(|| {
+            let dll = dll::Library::new($dll).unwrap();
 
             // TODO: cleanup liberal use of expect/unwrap
-            Functions {
-                $($fn_name: dll.get_proc(stringify!($fn_name)).unwrap(),),*
+            FNS {
+                $($fn_name: dll.get_proc(stringify!($fn_name)).unwrap(),)*
             }
         });
+
+        $(
+            #[allow(non_snake_case)]
+            #[inline(always)]
+            pub fn $fn_name($($arg: $type),*) -> $ret {
+                (FNS.$fn_name)($($arg),*)
+            }
+        )*
     };
 }
-
-*/
