@@ -9,8 +9,12 @@ fn main() {
     });
 
     let ping_dest: ipv4::Addr = dest_arg.parse().unwrap();
+    let ping_req = icmp::Request::new()
+        .msg("No one is home")
+        .ttl(19)
+        .timeout(10);
 
-    let res = icmp::ping(&ping_dest);
+    let res = ping_req.send(&ping_dest);
     match res {
         Ok(icmp_reply) => println!(
             "Reply: {:?}\n{}",

@@ -3,6 +3,9 @@ use crate::ipv4;
 
 pub struct Request {
     // TODO:
+    _msg: String,
+    _ttl: u8,
+    _timeout: u32,
 }
 
 pub struct Reply<'a> {
@@ -22,58 +25,86 @@ impl std::fmt::Debug for Reply<'_> {
     }
 }
 
-pub fn ping(addr: &ipv4::Addr) -> Result<Reply, String> {
-    // TODO: cleanup liberal use of unwrap
-    let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
-
-    #[allow(non_snake_case)]
-    let IcmpCreateFile: FnIcmpCreateFile = iphlp
-        .get_proc("IcmpCreateFile")
-        .expect("IcmpCreateFile not found");
-
-    #[allow(non_snake_case)]
-    let IcmpSendEcho: FnIcmpSendEcho = iphlp
-        .get_proc("IcmpSendEcho")
-        .expect("IcmpSendEcho not found");
-
-    let icmp_file = IcmpCreateFile();
-
-    let echo_msg = "can you hear me?";
-    let mut reply_buffer = vec![0u8; std::mem::size_of::<IcmpEchoReply>() + 8 + echo_msg.len()];
-
-    let echo_options = WinIpOptionInformation {
-        ttl: 128,
-        tos: 0,
-        flags: 0,
-        options_data32: 0,
-        options_size: 0,
-    };
-
-    let echo_result = IcmpSendEcho(
-        icmp_file,
-        *addr,
-        echo_msg.as_ptr(),
-        echo_msg.len() as u16,
-        Some(&echo_options),
-        reply_buffer.as_mut_ptr(),
-        reply_buffer.len() as u32,
-        4000,
-    );
-
-    match echo_result {
-        0 => Err(String::from("IcmpSendEcho failed! No replies")),
-        1 => {
-            let reply_ref = unsafe { std::mem::transmute::<&u8, &IcmpEchoReply>(&reply_buffer[0]) };
-            Ok(Reply {
-                icmpr: reply_ref,
-                _buffer: reply_buffer,
-            })
+impl Request {
+    pub fn new() -> Self {
+        Self {
+            _msg: String::from("Hello! Anybody there?"),
+            _ttl: 128,
+            _timeout: 4000,
         }
-        _ => Err(std::format!("Unexpected reply count! {}", echo_result)),
+    }
+    pub fn msg<S>(mut self, request: S) -> Self
+    where
+        S: AsRef<str>,
+    {
+        self._msg = String::from(request.as_ref());
+        self
+    }
+
+    pub fn ttl(mut self, ttl: u8) -> Self {
+        self._ttl = ttl;
+        self
+    }
+
+    pub fn timeout(mut self, timeout: u32) -> Self {
+        self._timeout = timeout;
+        self
+    }
+
+    pub fn send(self, addr: &ipv4::Addr) -> Result<Reply, String> {
+        // TODO: cleanup liberal use of unwrap
+        let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
+
+        #[allow(non_snake_case)]
+        let IcmpCreateFile: FnIcmpCreateFile = iphlp
+            .get_proc("IcmpCreateFile")
+            .expect("IcmpCreateFile not found");
+
+        #[allow(non_snake_case)]
+        let IcmpSendEcho: FnIcmpSendEcho = iphlp
+            .get_proc("IcmpSendEcho")
+            .expect("IcmpSendEcho not found");
+
+        let icmp_file = IcmpCreateFile();
+
+        let mut reply_buffer =
+            vec![0u8; std::mem::size_of::<IcmpEchoReply>() + 8 + self._msg.len()];
+
+        let echo_options = WinIpOptionInformation {
+            ttl: self._ttl,
+            tos: 0,
+            flags: 0,
+            options_data32: 0,
+            options_size: 0,
+        };
+
+        let echo_result = IcmpSendEcho(
+            icmp_file,
+            *addr,
+            self._msg.as_ptr(),
+            self._msg.len() as u16,
+            Some(&echo_options),
+            reply_buffer.as_mut_ptr(),
+            reply_buffer.len() as u32,
+            self._timeout,
+        );
+
+        match echo_result {
+            0 => Err(String::from("IcmpSendEcho failed! No replies")),
+            1 => {
+                let reply_ref =
+                    unsafe { std::mem::transmute::<&u8, &IcmpEchoReply>(&reply_buffer[0]) };
+                Ok(Reply {
+                    icmpr: reply_ref,
+                    _buffer: reply_buffer,
+                })
+            }
+            _ => Err(std::format!("Unexpected reply count! {}", echo_result)),
+        }
     }
 }
 
-// Private Windows implementation
+// Private Windows definitions and implementations
 type WinHandle = *const std::ffi::c_void; // HANDLE (const void*)
 
 #[repr(C)]
@@ -110,43 +141,3 @@ type FnIcmpSendEcho = extern "stdcall" fn(
     reply_size: u32,
     timeout: u32,
 ) -> u32;
-
-/* TODO: amos defined these but do I really want them?
-fn IcmpCreateFile() -> WinHandle {
-    let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
-
-    let IcmpCreateFileProc: FnIcmpCreateFile = iphlp
-        .get_proc("IcmpCreateFile")
-        .expect("IcmpCreateFile not found");
-
-    IcmpCreateFileProc()
-}
-
-fn IcmpSendEcho(
-    handle: WinHandle,
-    dest: ipv4::Addr,
-    request_data: *const u8,
-    request_size: u16,
-    request_options: Option<&WinIpOptionInformation>,
-    reply_buffer: *mut u8,
-    reply_size: u32,
-    timeout: u32,
-) -> u32 {
-    let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
-
-    let IcmpSendEchoProc: FnIcmpSendEcho = iphlp
-        .get_proc("IcmpSendEcho")
-        .expect("IcmpSendEcho not found");
-
-    IcmpSendEchoProc(
-        handle,
-        dest,
-        request_data,
-        request_size,
-        request_options,
-        reply_buffer,
-        reply_size,
-        timeout,
-    )
-}
-*/
