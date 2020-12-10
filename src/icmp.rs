@@ -65,9 +65,9 @@ impl Request {
 
         // FIXME: RAII-ify
         let echo_result = {
-            let icmp_file = (IP_HLP_API.IcmpCreateFile)();
+            let icmp_file = (IPHLPAPI.IcmpCreateFile)();
 
-            let echo_result = (IP_HLP_API.IcmpSendEcho)(
+            let echo_result = (IPHLPAPI.IcmpSendEcho)(
                 icmp_file,
                 *addr,
                 self._msg.as_ptr(),
@@ -78,7 +78,7 @@ impl Request {
                 self._timeout,
             );
 
-            (IP_HLP_API.IcmpCloseHandle)(icmp_file);
+            (IPHLPAPI.IcmpCloseHandle)(icmp_file);
 
             echo_result
         };
@@ -123,38 +123,30 @@ pub struct IcmpEchoReply {
     _options: WinIpOptionInformation,
 }
 
-#[allow(non_snake_case)]
-struct IpHlpFn {
-    pub IcmpCreateFile: extern "stdcall" fn() -> WinHandle,
+macro_rules! bind {
+    ($dll_name:ident $(fn $fn_name:ident($($arg:ident: $type:ty),*) -> $ret:ty;)*) => {
 
-    pub IcmpSendEcho: extern "stdcall" fn(
-        handle: WinHandle,
-        dest: ipv4::Addr,
-        request_data: *const u8,
-        request_size: u16,
-        request_options: Option<&WinIpOptionInformation>,
-        reply_buffer: *mut u8,
-        reply_size: u32,
-        timeout: u32,
-    ) -> u32,
+        #[allow(non_snake_case)]
+        struct $dll_name {
+            $($fn_name: extern "stdcall" fn ($($arg: $type),*) -> $ret),*
+        }
 
-    pub IcmpCloseHandle: extern "stdcall" fn(handle: WinHandle),
+        use once_cell::sync::Lazy;
+        static $dll_name: Lazy<$dll_name> = Lazy::new(|| {
+            let dll_name = format!("{}.dll", stringify!($dll_name));
+            let dll = dll::Library::new(&dll_name).unwrap();
+
+            // TODO: cleanup liberal use of expect/unwrap
+            $dll_name {
+                $($fn_name: dll.get_proc(stringify!($fn_name)).unwrap(),)*
+            }
+        });
+    };
 }
 
-use once_cell::sync::Lazy;
-static IP_HLP_API: Lazy<IpHlpFn> = Lazy::new(|| {
-    let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
-
-    // TODO: cleanup liberal use of expect/unwrap
-    IpHlpFn {
-        IcmpCreateFile: iphlp
-            .get_proc("IcmpCreateFile")
-            .expect("IcmpCreateFile not found"),
-        IcmpSendEcho: iphlp
-            .get_proc("IcmpSendEcho")
-            .expect("IcmpSendEcho not found"),
-        IcmpCloseHandle: iphlp
-            .get_proc("IcmpCloseHandle")
-            .expect("IcmpCloseHandle not found"),
-    }
-});
+bind! {
+    IPHLPAPI
+    fn IcmpCreateFile() -> WinHandle;
+    fn IcmpSendEcho(handle: WinHandle, dest: ipv4::Addr, request_data: *const u8, request_size: u16, request_options: Option<&WinIpOptionInformation>, reply_buffer: *mut u8, reply_size: u32, timeout: u32) -> u32;
+    fn IcmpCloseHandle(handle: WinHandle) -> ();
+}
