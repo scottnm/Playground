@@ -1,14 +1,14 @@
-type WinHModule = usize; // HMODULE (non-null void*)
-type WinFarProc = std::ptr::NonNull<std::ffi::c_void>; // FARPROC (non-null void*)
+type HModule = usize; // HMODULE (non-null void*)
+type FarProc = std::ptr::NonNull<std::ffi::c_void>; // FARPROC (non-null void*)
 
 extern "stdcall" {
-    fn LoadLibraryA(name: *const i8) -> WinHModule;
-    fn GetProcAddress(module: WinHModule, name: *const i8) -> Option<WinFarProc>;
-    fn FreeLibrary(module: WinHModule) -> bool;
+    fn LoadLibraryA(name: *const i8) -> HModule;
+    fn GetProcAddress(module: HModule, name: *const i8) -> Option<FarProc>;
+    fn FreeLibrary(module: HModule) -> bool;
 }
 
 pub struct Library {
-    handle: WinHModule,
+    handle: HModule,
 }
 
 impl Library {
