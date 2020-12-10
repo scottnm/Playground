@@ -19,6 +19,14 @@ impl Reply<'_> {
     pub fn data(&self) -> &[u8] {
         self.icmpr.data()
     }
+
+    pub fn rtt(&self) -> u32 {
+        self.icmpr.rtt
+    }
+
+    pub fn ttl(&self) -> u8 {
+        self.icmpr.options.ttl
+    }
 }
 
 impl std::fmt::Debug for Reply<'_> {

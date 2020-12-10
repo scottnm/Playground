@@ -22,7 +22,7 @@ pub struct IcmpEchoReply {
     data_size: u16,
     reserved: u16,
     data: *mut u8,
-    options: IpOptionInformation,
+    pub options: IpOptionInformation,
 }
 
 impl IcmpEchoReply {
