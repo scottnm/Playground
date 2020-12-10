@@ -10,6 +10,20 @@ fn main() {
         std::process::exit(1);
     });
 
+    {
+        type FnMessageBoxA =
+            extern "stdcall" fn(*const std::ffi::c_void, *const u8, *const u8, u32);
+        let user32_dll = dll::Library::new("USER32.dll").unwrap();
+        let MessageBoxA: FnMessageBoxA = user32_dll.get_proc("MessageBoxA").unwrap();
+        MessageBoxA(
+            std::ptr::null(),
+            "Hello from Rust\0".as_ptr(),
+            std::ptr::null(),
+            0,
+        );
+        // drop happens here
+    }
+
     let ping_dest: ipv4::Addr = dest_arg.parse().unwrap();
     let ping_msg = "No one is home";
 

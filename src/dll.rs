@@ -1,9 +1,10 @@
-type WinHModule = std::ptr::NonNull<std::ffi::c_void>; // HMODULE (non-null void*)
+type WinHModule = usize; // HMODULE (non-null void*)
 type WinFarProc = std::ptr::NonNull<std::ffi::c_void>; // FARPROC (non-null void*)
 
 extern "stdcall" {
-    fn LoadLibraryA(name: *const i8) -> Option<WinHModule>;
+    fn LoadLibraryA(name: *const i8) -> WinHModule;
     fn GetProcAddress(module: WinHModule, name: *const i8) -> Option<WinFarProc>;
+    fn FreeLibrary(module: WinHModule) -> bool;
 }
 
 pub struct Library {
@@ -15,7 +16,10 @@ impl Library {
         // TODO: handle invalid string name errors
         let c_name = std::ffi::CString::new(name.as_bytes()).expect("invalid library name!");
         let maybe_lib = unsafe { LoadLibraryA(c_name.as_ptr()) };
-        maybe_lib.map(|lib| Library { handle: lib })
+        match maybe_lib {
+            0 => None,
+            _ => Some(Library { handle: maybe_lib }),
+        }
     }
 
     pub fn get_proc<T>(&self, name: &str) -> Option<T> {
@@ -27,12 +31,21 @@ impl Library {
     }
 }
 
+impl Drop for Library {
+    fn drop(&mut self) {
+        let succeeded: bool = unsafe { FreeLibrary(self.handle) };
+        assert!(succeeded);
+        println!("dropping");
+    }
+}
+
 macro_rules! bind {
     ($dll:literal $(fn $fn_name:ident($($arg:ident: $type:ty),*) -> $ret:ty;)*) => {
 
         #[allow(non_snake_case)]
         struct FNS {
-            $(pub $fn_name: extern "stdcall" fn ($($arg: $type),*) -> $ret),*
+            $($fn_name: extern "stdcall" fn ($($arg: $type),*) -> $ret),*,
+            _dll: dll::Library,
         }
 
         use once_cell::sync::Lazy;
@@ -42,6 +55,7 @@ macro_rules! bind {
             // TODO: cleanup liberal use of expect/unwrap
             FNS {
                 $($fn_name: dll.get_proc(stringify!($fn_name)).unwrap(),)*
+                _dll: dll,
             }
         });
 
