@@ -52,9 +52,6 @@ impl Request {
     }
 
     pub fn send(self, addr: &ipv4::Addr) -> Result<Reply, String> {
-        // TODO: cleanup liberal use of unwrap
-        let iphlp = IpHlpFn::get();
-
         let mut reply_buffer =
             vec![0u8; std::mem::size_of::<IcmpEchoReply>() + 8 + self._msg.len()];
 
@@ -68,9 +65,9 @@ impl Request {
 
         // FIXME: RAII-ify
         let echo_result = {
-            let icmp_file = (iphlp.IcmpCreateFile)();
+            let icmp_file = (IP_HLP_API.IcmpCreateFile)();
 
-            let echo_result = (iphlp.IcmpSendEcho)(
+            let echo_result = (IP_HLP_API.IcmpSendEcho)(
                 icmp_file,
                 *addr,
                 self._msg.as_ptr(),
@@ -81,7 +78,7 @@ impl Request {
                 self._timeout,
             );
 
-            (iphlp.IcmpCloseHandle)(icmp_file);
+            (IP_HLP_API.IcmpCloseHandle)(icmp_file);
 
             echo_result
         };
@@ -144,20 +141,20 @@ struct IpHlpFn {
     pub IcmpCloseHandle: extern "stdcall" fn(handle: WinHandle),
 }
 
-impl IpHlpFn {
-    fn get() -> Self {
-        let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
+use once_cell::sync::Lazy;
+static IP_HLP_API: Lazy<IpHlpFn> = Lazy::new(|| {
+    let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
 
-        Self {
-            IcmpCreateFile: iphlp
-                .get_proc("IcmpCreateFile")
-                .expect("IcmpCreateFile not found"),
-            IcmpSendEcho: iphlp
-                .get_proc("IcmpSendEcho")
-                .expect("IcmpSendEcho not found"),
-            IcmpCloseHandle: iphlp
-                .get_proc("IcmpCloseHandle")
-                .expect("IcmpCloseHandle not found"),
-        }
+    // TODO: cleanup liberal use of expect/unwrap
+    IpHlpFn {
+        IcmpCreateFile: iphlp
+            .get_proc("IcmpCreateFile")
+            .expect("IcmpCreateFile not found"),
+        IcmpSendEcho: iphlp
+            .get_proc("IcmpSendEcho")
+            .expect("IcmpSendEcho not found"),
+        IcmpCloseHandle: iphlp
+            .get_proc("IcmpCloseHandle")
+            .expect("IcmpCloseHandle not found"),
     }
-}
+});
