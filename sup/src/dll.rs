@@ -35,7 +35,6 @@ impl Drop for Library {
     fn drop(&mut self) {
         let succeeded: bool = unsafe { FreeLibrary(self.handle) };
         assert!(succeeded);
-        println!("dropping");
     }
 }
 
