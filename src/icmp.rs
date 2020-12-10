@@ -7,31 +7,28 @@ pub struct Request {
     timeout: u32,
 }
 
+#[derive(Debug)]
 pub struct Reply<'a> {
-    icmpr: &'a iphlp::IcmpEchoReply,
-
     // field should never be referenced directly since
     // it's just a backing buffer for icmpr
     _buffer: Vec<u8>,
+    data: &'a [u8],
+    ttl: std::time::Duration,
+    addr: ipv4::Addr,
+    rtt: std::time::Duration,
 }
 
 impl Reply<'_> {
     pub fn data(&self) -> &[u8] {
-        self.icmpr.data()
+        self.data
     }
 
-    pub fn rtt(&self) -> u32 {
-        self.icmpr.rtt
+    pub fn rtt(&self) -> std::time::Duration {
+        self.rtt
     }
 
-    pub fn ttl(&self) -> u8 {
-        self.icmpr.options.ttl
-    }
-}
-
-impl std::fmt::Debug for Reply<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self.icmpr)
+    pub fn ttl(&self) -> std::time::Duration {
+        self.ttl
     }
 }
 
@@ -99,8 +96,11 @@ impl Request {
                 let reply_ref =
                     unsafe { std::mem::transmute::<&u8, &iphlp::IcmpEchoReply>(&reply_buffer[0]) };
                 Ok(Reply {
-                    icmpr: reply_ref,
                     _buffer: reply_buffer,
+                    data: reply_ref.data(),
+                    ttl: std::time::Duration::from_secs(reply_ref.options.ttl as u64),
+                    addr: reply_ref.addr,
+                    rtt: std::time::Duration::from_millis(reply_ref.rtt as u64),
                 })
             }
             _ => Err(std::format!("Unexpected reply count! {}", echo_result)),

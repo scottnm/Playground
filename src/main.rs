@@ -24,7 +24,7 @@ fn main() {
         let res = ping_req.send(&ping_dest);
         match res {
             Ok(icmp_reply) => println!(
-                "Reply from {:?}: bytes={} time={} TTL={}",
+                "Reply from {:?}: bytes={} time={:?} TTL={:?}",
                 ping_dest,
                 icmp_reply.data().len(),
                 icmp_reply.rtt(),
