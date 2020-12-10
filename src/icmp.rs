@@ -53,22 +53,7 @@ impl Request {
 
     pub fn send(self, addr: &ipv4::Addr) -> Result<Reply, String> {
         // TODO: cleanup liberal use of unwrap
-        let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
-
-        #[allow(non_snake_case)]
-        let IcmpCreateFile: FnIcmpCreateFile = iphlp
-            .get_proc("IcmpCreateFile")
-            .expect("IcmpCreateFile not found");
-
-        #[allow(non_snake_case)]
-        let IcmpCloseHandle: FnIcmpCloseHandle = iphlp
-            .get_proc("IcmpCloseHandle")
-            .expect("IcmpCloseHandle not found");
-
-        #[allow(non_snake_case)]
-        let IcmpSendEcho: FnIcmpSendEcho = iphlp
-            .get_proc("IcmpSendEcho")
-            .expect("IcmpSendEcho not found");
+        let iphlp = IpHlpFn::get();
 
         let mut reply_buffer =
             vec![0u8; std::mem::size_of::<IcmpEchoReply>() + 8 + self._msg.len()];
@@ -83,9 +68,9 @@ impl Request {
 
         // FIXME: RAII-ify
         let echo_result = {
-            let icmp_file = IcmpCreateFile();
+            let icmp_file = (iphlp.IcmpCreateFile)();
 
-            let echo_result = IcmpSendEcho(
+            let echo_result = (iphlp.IcmpSendEcho)(
                 icmp_file,
                 *addr,
                 self._msg.as_ptr(),
@@ -96,7 +81,7 @@ impl Request {
                 self._timeout,
             );
 
-            IcmpCloseHandle(icmp_file);
+            (iphlp.IcmpCloseHandle)(icmp_file);
 
             echo_result
         };
@@ -141,17 +126,38 @@ pub struct IcmpEchoReply {
     _options: WinIpOptionInformation,
 }
 
-type FnIcmpCreateFile = extern "stdcall" fn() -> WinHandle;
+#[allow(non_snake_case)]
+struct IpHlpFn {
+    pub IcmpCreateFile: extern "stdcall" fn() -> WinHandle,
 
-type FnIcmpCloseHandle = extern "stdcall" fn(handle: WinHandle);
+    pub IcmpSendEcho: extern "stdcall" fn(
+        handle: WinHandle,
+        dest: ipv4::Addr,
+        request_data: *const u8,
+        request_size: u16,
+        request_options: Option<&WinIpOptionInformation>,
+        reply_buffer: *mut u8,
+        reply_size: u32,
+        timeout: u32,
+    ) -> u32,
 
-type FnIcmpSendEcho = extern "stdcall" fn(
-    handle: WinHandle,
-    dest: ipv4::Addr,
-    request_data: *const u8,
-    request_size: u16,
-    request_options: Option<&WinIpOptionInformation>,
-    reply_buffer: *mut u8,
-    reply_size: u32,
-    timeout: u32,
-) -> u32;
+    pub IcmpCloseHandle: extern "stdcall" fn(handle: WinHandle),
+}
+
+impl IpHlpFn {
+    fn get() -> Self {
+        let iphlp = dll::Library::new("IPHLPAPI.dll").expect("IPHLPAPI.dll not found");
+
+        Self {
+            IcmpCreateFile: iphlp
+                .get_proc("IcmpCreateFile")
+                .expect("IcmpCreateFile not found"),
+            IcmpSendEcho: iphlp
+                .get_proc("IcmpSendEcho")
+                .expect("IcmpSendEcho not found"),
+            IcmpCloseHandle: iphlp
+                .get_proc("IcmpCloseHandle")
+                .expect("IcmpCloseHandle not found"),
+        }
+    }
+}
