@@ -1,4 +1,7 @@
 type HModule = usize; // HMODULE (non-null void*)
+                      // use usize instead of pointer type because pointer types aren't safe to
+                      // share across threads. This "pointer" is really just a handle which
+                      // should be safe.
 type FarProc = std::ptr::NonNull<std::ffi::c_void>; // FARPROC (non-null void*)
 
 extern "stdcall" {
