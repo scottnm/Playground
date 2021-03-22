@@ -18,6 +18,10 @@ pub const ARENA_WIDTH: f32 = 100.0;
 pub const PADDLE_HEIGHT: f32 = 16.0;
 pub const PADDLE_WIDTH: f32 = 4.0;
 
+pub const BALL_VELOCITY_X: f32 = 75.0;
+pub const BALL_VELOCITY_Y: f32 = 75.0;
+pub const BALL_RADIUS: f32 = 2.0;
+
 #[derive(PartialEq, Eq)]
 pub enum Side {
     Left,
@@ -44,6 +48,24 @@ impl Component for Paddle {
     type Storage = DenseVecStorage<Self>;
 }
 
+pub struct Ball {
+    pub velocity: [f32; 2],
+    pub radius: f32,
+}
+
+impl Ball {
+    fn new() -> Ball {
+        Ball {
+            velocity: [BALL_VELOCITY_X, BALL_VELOCITY_Y],
+            radius: BALL_RADIUS,
+        }
+    }
+}
+
+impl Component for Ball {
+    type Storage = DenseVecStorage<Self>;
+}
+
 pub struct Pong;
 impl SimpleState for Pong {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
@@ -57,7 +79,8 @@ impl SimpleState for Pong {
         // world.register::<Paddle>();
 
         initialise_camera(world);
-        initialise_paddles(world, sprite_sheet_handle);
+        initialise_paddles(world, sprite_sheet_handle.clone());
+        initialise_ball(world, sprite_sheet_handle);
     }
 }
 
@@ -94,6 +117,21 @@ fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet
         .with(sprite_render.clone())
         .with(Paddle::new(Side::Right))
         .with(right_transform)
+        .build();
+}
+
+fn initialise_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
+    let sprite_render = SpriteRender::new(sprite_sheet_handle, 1);
+
+    let mut transform = Transform::default();
+
+    transform.set_translation_xyz(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0, 0.0);
+
+    world
+        .create_entity()
+        .with(Ball::new())
+        .with(sprite_render.clone())
+        .with(transform)
         .build();
 }
 

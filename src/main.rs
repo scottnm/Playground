@@ -29,6 +29,12 @@ fn main() -> amethyst::Result<()> {
     let input_bundle =
         InputBundle::<StringBindings>::new().with_bindings_from_file(binding_path)?;
 
+    mod sysname {
+        pub const PADDLES: &'static str = "paddle_system";
+        pub const BALLS: &'static str = "move_balls_system";
+        pub const BOUNCE_BALLS: &'static str = "bounce_system";
+        pub const INPUT: &'static str = "input_system";
+    }
     let game_data = GameDataBuilder::default()
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
@@ -42,7 +48,13 @@ fn main() -> amethyst::Result<()> {
         )?
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
-        .with(systems::PaddleSystem, "paddle_system", &["input_system"]);
+        .with(systems::PaddleSystem, sysname::PADDLES, &[sysname::INPUT])
+        .with(systems::MoveBallsSystem, sysname::BALLS, &[])
+        .with(
+            systems::BounceSystem,
+            sysname::BOUNCE_BALLS,
+            &[sysname::PADDLES, sysname::BALLS],
+        );
 
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, Pong, game_data)?;
