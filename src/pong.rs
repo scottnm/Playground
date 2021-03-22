@@ -1,5 +1,6 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
+    core::timing::Time,
     core::transform::{Transform, TransformBundle},
     ecs::{Component, DenseVecStorage},
     prelude::*,
@@ -66,13 +67,23 @@ impl Component for Ball {
     type Storage = DenseVecStorage<Self>;
 }
 
-pub struct Pong;
+#[derive(Default)]
+pub struct Pong {
+    ball_spawn_timer: Option<f32>,
+    sprite_sheet_handle: Option<Handle<SpriteSheet>>,
+}
+
 impl SimpleState for Pong {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
+        self.ball_spawn_timer.replace(1.0);
+
         // load the sprite sheet necessary for the graphics
         let sprite_sheet_handle = load_sprite_sheet(world);
+
+        self.sprite_sheet_handle
+            .replace(sprite_sheet_handle.clone());
 
         // N.B. The following line isn't needed since there's a system using the Paddle compononet.
         // Otherwise, we'd need it.
@@ -80,7 +91,19 @@ impl SimpleState for Pong {
 
         initialise_camera(world);
         initialise_paddles(world, sprite_sheet_handle.clone());
-        initialise_ball(world, sprite_sheet_handle);
+    }
+
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+        if let Some(mut timer) = self.ball_spawn_timer.clone() {
+            timer -= data.world.fetch::<Time>().delta_seconds();
+            if timer <= 0.0 {
+                self.ball_spawn_timer.take();
+                initialise_ball(data.world, self.sprite_sheet_handle.clone().unwrap());
+            } else {
+                self.ball_spawn_timer.replace(timer);
+            }
+        }
+        Trans::None
     }
 }
 
