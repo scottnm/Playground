@@ -1,13 +1,16 @@
 //! Pong Tutorial 1
 
 use amethyst::{
-    core::transform::TransformBundle,
+    assets::{AssetStorage, Handle, Loader},
+    core::transform::{Transform, TransformBundle},
+    ecs::{Component, DenseVecStorage},
     prelude::*,
     renderer::{
         plugins::{RenderFlat2D, RenderToWindow},
         types::DefaultBackend,
         RenderingBundle,
     },
+    renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     utils::application_root_dir,
 };
 

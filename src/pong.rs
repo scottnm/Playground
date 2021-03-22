@@ -1,9 +1,15 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
-    core::transform::Transform,
+    core::transform::{Transform, TransformBundle},
     ecs::{Component, DenseVecStorage},
     prelude::*,
-    renderer::{Camera, ImageFormat, SpriteRender, SpriteSheetFormat, Texture},
+    renderer::{
+        plugins::{RenderFlat2D, RenderToWindow},
+        types::DefaultBackend,
+        RenderingBundle,
+    },
+    renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
+    utils::application_root_dir,
 };
 
 pub const ARENA_HEIGHT: f32 = 100.0;
@@ -43,11 +49,14 @@ impl SimpleState for Pong {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
+        // load the sprite sheet necessary for the graphics
+        let sprite_sheet_handle = load_sprite_sheet(world);
+
         // need to register paddles before we initialize them
         world.register::<Paddle>();
 
         initialise_camera(world);
-        initialise_paddles(world);
+        initialise_paddles(world, sprite_sheet_handle);
     }
 }
 
@@ -61,7 +70,9 @@ fn initialise_camera(world: &mut World) {
         .build();
 }
 
-fn initialise_paddles(world: &mut World) {
+fn initialise_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
+    let sprite_render = SpriteRender::new(sprite_sheet_handle, 0);
+
     let mut left_transform = Transform::default();
     let mut right_transform = Transform::default();
 
@@ -73,12 +84,39 @@ fn initialise_paddles(world: &mut World) {
     world
         .create_entity()
         .with(Paddle::new(Side::Left))
+        .with(sprite_render.clone())
         .with(left_transform)
         .build();
 
     world
         .create_entity()
+        .with(sprite_render.clone())
         .with(Paddle::new(Side::Right))
         .with(right_transform)
         .build();
+}
+
+fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
+    // Load hte sprite sheet necessary to render the graphics.
+    // The texture is the pixel data
+    // `texture_handle` is a cloneable reference to the texture
+    let loader = world.read_resource::<Loader>();
+
+    let texture_handle = {
+        let texture_storage = world.read_resource::<AssetStorage<Texture>>();
+        loader.load(
+            "texture/pong_spritesheet.png",
+            ImageFormat::default(),
+            (),
+            &texture_storage,
+        )
+    };
+
+    let sprite_sheet_store = world.read_resource::<AssetStorage<SpriteSheet>>();
+    loader.load(
+        "texture/pong_spritesheet.ron",
+        SpriteSheetFormat(texture_handle),
+        (),
+        &sprite_sheet_store,
+    )
 }
