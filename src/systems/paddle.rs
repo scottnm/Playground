@@ -5,7 +5,7 @@ use amethyst::{
     input::{InputHandler, StringBindings},
 };
 
-use crate::pong::{Paddle, Side, ARENA_HEIGHT, ARENA_WIDTH};
+use crate::pong::{Paddle, Side, ARENA_HEIGHT, ARENA_WIDTH, PADDLE_HEIGHT};
 
 #[derive(SystemDesc)]
 pub struct PaddleSystem;
@@ -24,13 +24,17 @@ impl<'s> System<'s> for PaddleSystem {
                 Side::Right => input.axis_value("right_paddle"),
             };
             if let Some(mv_amount) = movement {
-                if mv_amount != 0.0 {
-                    let side_name = match paddle.side {
-                        Side::Left => "left",
-                        Side::Right => "right",
-                    };
-                    println!("Side {:?} moving {}", side_name, mv_amount);
-                }
+                let scaled_amount = 1.2 * mv_amount as f32;
+                let paddle_y = transform.translation().y;
+
+                const ARENA_UPPER_BOUND: f32 = ARENA_HEIGHT - PADDLE_HEIGHT * 0.5;
+                const ARENA_LOWER_BOUND: f32 = PADDLE_HEIGHT * 0.5;
+
+                let new_paddle_y = (paddle_y + scaled_amount)
+                    .min(ARENA_UPPER_BOUND)
+                    .max(ARENA_LOWER_BOUND);
+
+                transform.set_translation_y(new_paddle_y);
             }
         }
     }
