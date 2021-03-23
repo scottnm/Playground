@@ -2,7 +2,7 @@ use amethyst::{
     assets::{AssetStorage, Handle, Loader},
     core::timing::Time,
     core::transform::{Transform, TransformBundle},
-    ecs::{Component, DenseVecStorage, Entity},
+    ecs::{Component, DenseVecStorage},
     prelude::*,
     renderer::{
         plugins::{RenderFlat2D, RenderToWindow},
@@ -10,7 +10,6 @@ use amethyst::{
         RenderingBundle,
     },
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
-    ui::{Anchor, LineMode, TtfFormat, UiText, UiTransform},
     utils::application_root_dir,
 };
 
@@ -69,17 +68,6 @@ impl Component for Ball {
 }
 
 #[derive(Default)]
-pub struct ScoreBoard {
-    pub p1_score: i32,
-    pub p2_score: i32,
-}
-
-pub struct ScoreText {
-    pub p1_score_text: Entity,
-    pub p2_score_text: Entity,
-}
-
-#[derive(Default)]
 pub struct Pong {
     ball_spawn_timer: Option<f32>,
     sprite_sheet_handle: Option<Handle<SpriteSheet>>,
@@ -100,11 +88,9 @@ impl SimpleState for Pong {
         // N.B. The following line isn't needed since there's a system using the Paddle compononet.
         // Otherwise, we'd need it.
         // world.register::<Paddle>();
-        // world.register::<Ball>();
 
         initialise_camera(world);
         initialise_paddles(world, sprite_sheet_handle.clone());
-        initialise_scoreboard(world);
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
@@ -195,64 +181,4 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
         (),
         &sprite_sheet_store,
     )
-}
-
-fn initialise_scoreboard(world: &mut World) {
-    let font = world.read_resource::<Loader>().load(
-        "font/square.ttf",
-        TtfFormat,
-        (),
-        &world.read_resource(),
-    );
-    let p1_transform = UiTransform::new(
-        "P1".to_string(),
-        Anchor::TopMiddle,
-        Anchor::TopMiddle,
-        -50.,
-        -50.,
-        1.,
-        200.,
-        50.,
-    );
-    let p2_transform = UiTransform::new(
-        "P2".to_string(),
-        Anchor::TopMiddle,
-        Anchor::TopMiddle,
-        50.,
-        -50.,
-        1.,
-        200.,
-        50.,
-    );
-
-    let p1_score_text = world
-        .create_entity()
-        .with(p1_transform)
-        .with(UiText::new(
-            font.clone(),
-            "0".to_string(),
-            [1., 1., 1., 1.],
-            50.,
-            LineMode::Single,
-            Anchor::Middle,
-        ))
-        .build();
-
-    let p2_score_text = world
-        .create_entity()
-        .with(p2_transform)
-        .with(UiText::new(
-            font,
-            "0".to_string(),
-            [1., 1., 1., 1.],
-            50.,
-            LineMode::Single,
-            Anchor::Middle,
-        ))
-        .build();
-
-    world.insert(ScoreText {
-        p1_score_text,
-        p2_score_text,
-    });
 }

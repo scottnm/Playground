@@ -1,7 +1,4 @@
-//! Pong Tutorial 5
-
-mod pong;
-mod systems;
+//! Pong Tutorial 1
 
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
@@ -15,9 +12,11 @@ use amethyst::{
         RenderingBundle,
     },
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
-    ui::{RenderUi, UiBundle},
     utils::application_root_dir,
 };
+
+mod pong;
+mod systems;
 
 use crate::pong::Pong;
 
@@ -46,10 +45,8 @@ fn main() -> amethyst::Result<()> {
                         .with_clear([0.0, 0.0, 0.0, 1.0]),
                 )
                 // RenderFlat2D plugin is used to render entities with a `SpriteRender` component.
-                .with_plugin(RenderFlat2D::default())
-                .with_plugin(RenderUi::default()),
+                .with_plugin(RenderFlat2D::default()),
         )?
-        .with_bundle(UiBundle::<StringBindings>::new())?
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with(systems::PaddleSystem, sysname::PADDLES, &[sysname::INPUT])
