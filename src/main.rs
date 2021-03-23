@@ -34,6 +34,7 @@ fn main() -> amethyst::Result<()> {
         pub const BALLS: &'static str = "move_balls_system";
         pub const BOUNCE_BALLS: &'static str = "bounce_system";
         pub const INPUT: &'static str = "input_system";
+        pub const WINNER: &'static str = "winner_system";
     }
     let game_data = GameDataBuilder::default()
         .with_bundle(
@@ -54,7 +55,8 @@ fn main() -> amethyst::Result<()> {
             systems::BounceSystem,
             sysname::BOUNCE_BALLS,
             &[sysname::PADDLES, sysname::BALLS],
-        );
+        )
+        .with(systems::WinnerSystem, sysname::WINNER, &[sysname::BALLS]);
 
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, Pong::default(), game_data)?;
