@@ -1,17 +1,12 @@
+use crate::audio::initialise_audio;
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
     core::timing::Time,
-    core::transform::{Transform, TransformBundle},
+    core::transform::Transform,
     ecs::{Component, DenseVecStorage, Entity},
     prelude::*,
-    renderer::{
-        plugins::{RenderFlat2D, RenderToWindow},
-        types::DefaultBackend,
-        RenderingBundle,
-    },
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     ui::{Anchor, LineMode, TtfFormat, UiText, UiTransform},
-    utils::application_root_dir,
 };
 
 pub const ARENA_HEIGHT: f32 = 100.0;
@@ -105,6 +100,7 @@ impl SimpleState for Pong {
         initialise_camera(world);
         initialise_paddles(world, sprite_sheet_handle.clone());
         initialise_scoreboard(world);
+        initialise_audio(world);
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {

@@ -1,12 +1,11 @@
 use amethyst::{
     core::timing::Time,
-    core::{SystemDesc, Transform},
+    core::Transform,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadStorage, System, SystemData, World, WriteStorage},
-    input::{InputHandler, StringBindings},
+    ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };
 
-use crate::pong::{Ball, ARENA_HEIGHT, ARENA_WIDTH, BALL_RADIUS, BALL_VELOCITY_X, BALL_VELOCITY_Y};
+use crate::pong::Ball;
 
 #[derive(SystemDesc)]
 pub struct MoveBallsSystem;

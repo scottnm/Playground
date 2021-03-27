@@ -1,12 +1,12 @@
 //! Pong Tutorial 5
 
+mod audio;
 mod pong;
 mod systems;
 
 use amethyst::{
-    assets::{AssetStorage, Handle, Loader},
-    core::transform::{Transform, TransformBundle},
-    ecs::{Component, DenseVecStorage},
+    audio::AudioBundle,
+    core::transform::TransformBundle,
     input::{InputBundle, StringBindings},
     prelude::*,
     renderer::{
@@ -14,7 +14,6 @@ use amethyst::{
         types::DefaultBackend,
         RenderingBundle,
     },
-    renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     ui::{RenderUi, UiBundle},
     utils::application_root_dir,
 };
@@ -52,6 +51,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(UiBundle::<StringBindings>::new())?
+        .with_bundle(AudioBundle::default())?
         .with(systems::PaddleSystem, sysname::PADDLES, &[sysname::INPUT])
         .with(systems::MoveBallsSystem, sysname::BALLS, &[])
         .with(

@@ -1,10 +1,12 @@
 use amethyst::{
-    core::timing::Time,
-    core::{SystemDesc, Transform},
+    assets::AssetStorage,
+    audio::{output::Output, Source},
+    core::Transform,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadStorage, System, SystemData, World, WriteStorage},
-    input::{InputHandler, StringBindings},
+    ecs::{Join, Read, ReadExpect, ReadStorage, System, SystemData, WriteStorage},
 };
+
+use crate::audio::{play_bounce_sound, Sounds};
 
 use crate::pong::{Ball, Paddle, Side, ARENA_HEIGHT};
 
@@ -38,19 +40,28 @@ impl<'s> System<'s> for BounceSystem {
         WriteStorage<'s, Ball>,
         ReadStorage<'s, Paddle>,
         ReadStorage<'s, Transform>,
+        Read<'s, AssetStorage<Source>>,
+        ReadExpect<'s, Sounds>,
+        Option<Read<'s, Output>>,
     );
 
-    fn run(&mut self, (mut balls, paddles, transforms): Self::SystemData) {
+    fn run(
+        &mut self,
+        (mut balls, paddles, transforms, storage, sounds, audio_output): Self::SystemData,
+    ) {
         // Check for collisions and bounce
         for (ball, ball_transform) in (&mut balls, &transforms).join() {
             let ball_x = ball_transform.translation().x;
             let ball_y = ball_transform.translation().y;
 
+            let mut bounced = false;
+
             // Bounce at the top or bottom of the pane
-            if (ball_y <= ball.radius && ball.velocity[1] < 0.0
-                || ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
+            if (ball_y <= ball.radius && ball.velocity[1] < 0.0)
+                || (ball_y >= ARENA_HEIGHT - ball.radius && ball.velocity[1] > 0.0)
             {
                 ball.velocity[1] = -ball.velocity[1];
+                bounced = true;
             }
 
             // Bounce at the paddles
@@ -73,9 +84,14 @@ impl<'s> System<'s> for BounceSystem {
                     };
 
                     if register_collision {
-                        ball.velocity[0] = -ball.velocity[0]
+                        ball.velocity[0] = -ball.velocity[0];
+                        bounced = true;
                     }
                 }
+            }
+
+            if bounced {
+                play_bounce_sound(&*sounds, &storage, audio_output.as_deref());
             }
         }
     }
