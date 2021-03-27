@@ -5,7 +5,7 @@ mod pong;
 mod systems;
 
 use amethyst::{
-    audio::AudioBundle,
+    audio::{AudioBundle, DjSystemDesc},
     core::transform::TransformBundle,
     input::{InputBundle, StringBindings},
     prelude::*,
@@ -18,6 +18,7 @@ use amethyst::{
     utils::application_root_dir,
 };
 
+use crate::audio::Music;
 use crate::pong::Pong;
 
 fn main() -> amethyst::Result<()> {
@@ -35,6 +36,7 @@ fn main() -> amethyst::Result<()> {
         pub const BOUNCE_BALLS: &'static str = "bounce_system";
         pub const INPUT: &'static str = "input_system";
         pub const WINNER: &'static str = "winner_system";
+        pub const DJ: &'static str = "dj_system";
     }
     let game_data = GameDataBuilder::default()
         .with_bundle(
@@ -51,6 +53,11 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(UiBundle::<StringBindings>::new())?
+        .with_system_desc(
+            DjSystemDesc::new(|music: &mut Music| music.music.next()),
+            sysname::DJ,
+            &[],
+        )
         .with_bundle(AudioBundle::default())?
         .with(systems::PaddleSystem, sysname::PADDLES, &[sysname::INPUT])
         .with(systems::MoveBallsSystem, sysname::BALLS, &[])
