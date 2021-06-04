@@ -14,6 +14,7 @@ get_gba_screen_buffer()
         .count = NUM_PIXELS,
     };
 }
+*/
 
 uint32_t
 get_gba_pixel_index(
@@ -23,4 +24,3 @@ get_gba_pixel_index(
 {
     return (row * SCREEN_WIDTH) + col;
 }
-*/
