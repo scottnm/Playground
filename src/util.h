@@ -15,9 +15,10 @@
 
 //////////////////
 // STRING HELPERS
+static_assert(sizeof(size_t) >= sizeof(uint32_t), size_t_atleast_u32);
 typedef struct str_t {
     char* bytes;
-    uint64_t len;
+    size_t len;
 } str_t;
 
 #define cstr(s) { .bytes=(s), .len=ARRAYSIZE(s)-1 }
