@@ -20,9 +20,9 @@ get_gba_display_mode()
     const register_t display_control = *s_display_control_register;
 
     // First 3 bits are the video mode
-    const video_mode_options_t video_mode = display_control & 0x7;
+    const video_mode_t video_mode = { .value = display_control & 0x7 };
     // Bits 0x8->0xA are the bg_mode
-    const bg_mode_options_t bg_mode = (display_control >> 0x8) & 0xF;
+    const bg_mode_t bg_mode = { .value = (display_control >> 0x8) & 0xF };
 
     return (display_mode_t) {
         .video_mode = video_mode,

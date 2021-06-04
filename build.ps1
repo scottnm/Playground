@@ -23,6 +23,8 @@ gcc `
     $DebugArg `
     .\src\*.c `
     -I .\ext\std_include `
+    -Wall `
+    -pedantic `
     "-O$OptimizationLevel" `
     -o "$BinDir\hello.elf" `
     -lm
