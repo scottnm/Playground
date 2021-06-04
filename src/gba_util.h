@@ -24,10 +24,10 @@ typedef enum video_mode_options_t
 {
     VIDEO_MODE_UNSET = 0,
     // Mode 3 - VRAM is read as a linear sequence of 16 bit values to form a bitmap
-    VIDEO_MODE_MODE3_16BIT_LINEAR_BITMAP = 3,
+    VIDEO_MODE_MODE3_16BIT_BMP = 3,
     // Mode 4 - VRAM is read as a linear sequence of 8 bit values corresponding to a palette.
     // Since half the memory is required to set each pixel, VRAM supports double buffering
-    VIDEO_MODE_8BIT_PALETTE_LINEAR_DOUBLE_BUFFER = 4,
+    VIDEO_MODE_MODE4_8BIT_PALETTE = 4,
 } video_mode_options_t;
 
 typedef struct video_mode_t

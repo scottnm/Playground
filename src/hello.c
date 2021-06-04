@@ -5,7 +5,7 @@ main(
     void)
 {
     set_gba_display_mode(
-        (video_mode_t) { .value = VIDEO_MODE_MODE3_16BIT_LINEAR_BITMAP },
+        (video_mode_t) { .value = VIDEO_MODE_MODE3_16BIT_BMP },
         (bg_mode_t) { .value = BG_MODE_ENABLE_BG2 });
     u16_span_t screen_memory = get_gba_mode3_screen_buffer();
 
