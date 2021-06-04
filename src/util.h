@@ -9,8 +9,13 @@
 
 ///////////////
 // TYPE HELPERS
+#define STRUCT_MEMBER(structName, member) \
+    ( ((structName*)0)->member )
+
 #define ASSERT_STRONG_TYPEDEF_SIZE(structName) \
-    static_assert(sizeof(structName) == sizeof(((structName*)0)->value), structName ## _size_eq_value_size)
+    static_assert( \
+        sizeof(structName) == sizeof(STRUCT_MEMBER(structName, value)), \
+        structName ## _size_eq_value_size)
 
 //////////////////
 // BUFFER HELPERS
