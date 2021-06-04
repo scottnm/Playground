@@ -20,7 +20,8 @@
 //////////////////
 // BUFFER HELPERS
 #ifndef ARRAYSIZE
-#define ARRAYSIZE(x) (sizeof((x))/sizeof((x)[0]))
+// Bug #4: ARRAYSIZE doesn't properly reject pointers
+#define ARRAYSIZE(arr)  (sizeof(arr) / sizeof((arr)[0]));
 #endif // !ARRAYSIZE
 
 //////////////////
@@ -52,6 +53,8 @@ make_str(
         type* data; \
         size_t count; \
     } typename
+
+#define AS_SPAN(arr) { .data=(arr), .count=ARRAYSIZE(arr) }
 
 #define SPAN_ADV(span, advCount) \
     do { \
