@@ -8,10 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// WINDOWS
-#include <sal.h>
-#include <Windows.h>
-
 // MINE
+#include "gba_util.h"
 #include "util.h"
-#include "input.h"
