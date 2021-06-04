@@ -1,11 +1,14 @@
 #ifndef __GBA_UTIL_H__
 #define __GBA_UTIL_H__
 
+#define MODE4_PALETTE_MAX_SIZE 256
+
 // N.B. can't be `static const` values since C requires such values to known at compile time and C doesn't
 // have a way to define compile-time, computed constants
 #define COLOR_BLUE rgb16(0, 0, 31)
 #define COLOR_WHITE rgb16(31, 31, 31)
 
+// Bug #2: add color16 and palette8 typedefs for better type safety
 static
 inline
 uint16_t
@@ -58,6 +61,9 @@ get_gba_mode3_screen_buffer();
 
 u16_span_t
 get_gba_mode4_palette_buffer();
+
+u8_span_t
+get_gba_mode4_screen_buffer();
 
 uint32_t
 get_gba_pixel_index(

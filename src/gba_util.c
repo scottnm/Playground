@@ -52,9 +52,35 @@ u16_span_t
 get_gba_mode3_screen_buffer()
 {
     dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE3_16BIT_BMP);
+
     // GBA's VRAM starts at 0x6000000
     return (u16_span_t) {
         .data = (uint16_t*)0x6000000,
+        .count = NUM_PIXELS,
+    };
+}
+
+u16_span_t
+get_gba_mode4_palette_buffer()
+{
+    dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE4_8BIT_PALETTE);
+
+    // GBA's Mode4 palette memory starts at 0x5000000
+    return (u16_span_t) {
+        .data = (uint16_t*)0x5000000,
+        .count = MODE4_PALETTE_MAX_SIZE,
+    };
+}
+
+u8_span_t
+get_gba_mode4_screen_buffer()
+{
+    // Bug #3: add support for mode4 double buffering
+    dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE4_8BIT_PALETTE);
+
+    // GBA's VRAM starts at 0x6000000
+    return (u8_span_t) {
+        .data = (uint8_t*)0x6000000,
         .count = NUM_PIXELS,
     };
 }
