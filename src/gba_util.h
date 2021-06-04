@@ -34,8 +34,8 @@ typedef struct video_mode_t
 {
     video_mode_options_t value;
 } video_mode_t;
+ASSERT_STRONG_TYPEDEF_SIZE(video_mode_t);
 
-// FIXME: better name than bg?
 typedef enum bg_mode_options_t
 {
     BG_MODE_UNSET = 0x0,
@@ -46,6 +46,7 @@ typedef struct bg_mode_t
 {
     bg_mode_options_t value;
 } bg_mode_t;
+ASSERT_STRONG_TYPEDEF_SIZE(bg_mode_t);
 
 void
 set_gba_display_mode(

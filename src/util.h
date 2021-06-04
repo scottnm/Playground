@@ -7,6 +7,11 @@
 #define UNREF(X) STATEMENT((void)(X))
 #define TODO(TODO_MSG) dbg_assert(false && "Todo! " TODO_MSG)
 
+///////////////
+// TYPE HELPERS
+#define ASSERT_STRONG_TYPEDEF_SIZE(structName) \
+    static_assert(sizeof(structName) == sizeof(((structName*)0)->value), structName ## _size_eq_value_size)
+
 //////////////////
 // BUFFER HELPERS
 #ifndef ARRAYSIZE
