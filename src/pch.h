@@ -2,6 +2,7 @@
 #define __PCH_H__
 
 // CSTD
+#include <stddef.h>
 #include <stdint.h>
 // #include <stdio.h>
 #include <stdbool.h>
@@ -10,7 +11,7 @@
 // #include <string.h>
 
 // MINE
-#include "gba_util.h"
 #include "util.h"
+#include "gba_util.h"
 
 #endif // __PCH_H__

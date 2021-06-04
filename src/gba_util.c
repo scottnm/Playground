@@ -4,7 +4,18 @@
 #define SCREEN_HEIGHT 160
 #define NUM_PIXELS (SCREEN_WIDTH * SCREEN_HEIGHT)
 
-/* FIXME: stubbing
+uint16_t
+rgb16(
+    uint8_t r,
+    uint8_t g,
+    uint8_t b)
+{
+    assert(r < 32);
+    assert(g < 32);
+    assert(b < 32);
+    return r + (g<<5) + (b<<10);
+}
+
 u16_span_t
 get_gba_screen_buffer()
 {
@@ -14,13 +25,11 @@ get_gba_screen_buffer()
         .count = NUM_PIXELS,
     };
 }
-*/
 
 uint32_t
 get_gba_pixel_index(
     uint8_t row,
-    uint8_t col
-    )
+    uint8_t col)
 {
     return (row * SCREEN_WIDTH) + col;
 }

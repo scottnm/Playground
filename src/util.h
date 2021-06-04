@@ -36,28 +36,28 @@
 
 ///////////////
 // SPAN HELPERS
-// #define DEF_SPAN_T(type, typename) \
-//     typedef struct typename { \
-//         type* data; \
-//         size_t count; \
-//     } typename
-//
-// #define SPAN_ADV(span, advCount) \
-//     do { \
-//         const size_t localAdvCount = (advCount); \
-//         (span).data += localAdvCount; \
-//         (span).count -= localAdvCount; \
-//     } while (0) \
-//
-// #define SPAN_FIRST(span, cnt) \
-//     { \
-//         .data = (span).data, \
-//         .count = min((span).count, cnt), \
-//     }
-//
-// DEF_SPAN_T(char, char_span_t);
-// DEF_SPAN_T(uint8_t, u8_span_t);
-// DEF_SPAN_T(uint16_t, u16_span_t);
+#define DEF_SPAN_T(type, typename) \
+    typedef struct typename { \
+        type* data; \
+        size_t count; \
+    } typename
+
+#define SPAN_ADV(span, advCount) \
+    do { \
+        const size_t localAdvCount = (advCount); \
+        (span).data += localAdvCount; \
+        (span).count -= localAdvCount; \
+    } while (0) \
+
+#define SPAN_FIRST(span, cnt) \
+    { \
+        .data = (span).data, \
+        .count = min((span).count, cnt), \
+    }
+
+DEF_SPAN_T(char, char_span_t);
+DEF_SPAN_T(uint8_t, u8_span_t);
+DEF_SPAN_T(uint16_t, u16_span_t);
 
 // char_span_t
 // get_first_split(
