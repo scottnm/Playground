@@ -20,6 +20,29 @@ rgb16(
     return r + (g<<5) + (b<<10);
 }
 
+typedef enum video_mode_options_t
+{
+    VIDEO_MODE_UNSET = 0,
+    VIDEO_MODE_16BIT_LINEAR_BITMAP = 3, // Mode3
+} video_mode_options_t;
+
+typedef struct video_mode_t
+{
+    video_mode_options_t value;
+} video_mode_t;
+
+// FIXME: better name than bg?
+typedef enum bg_mode_options_t
+{
+    BG_MODE_UNSET = 0x0,
+    BG_MODE_ENABLE_BG2 = 0xA,
+} bg_mode_options_t;
+
+typedef struct bg_mode_t
+{
+    bg_mode_options_t value;
+} bg_mode_t;
+
 u16_span_t
 get_gba_screen_buffer();
 
@@ -27,6 +50,11 @@ uint32_t
 get_gba_pixel_index(
     uint8_t row,
     uint8_t col);
+
+void
+set_gba_display_mode(
+    video_mode_t video_mode,
+    bg_mode_t bg_mode);
 
 #endif // __GBA_UTIL_H__
 

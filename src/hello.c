@@ -4,12 +4,9 @@ int
 main(
     void)
 {
-    // TODO(scottnm): what's this all about?
-    {
-        unsigned long* mode_memory = (unsigned long*)0x4000000;
-        *mode_memory = 0x403; // set mode3 with bg2 on
-    }
-
+    set_gba_display_mode(
+        (video_mode_t) { .value = VIDEO_MODE_16BIT_LINEAR_BITMAP },
+        (bg_mode_t) { .value = BG_MODE_ENABLE_BG2 });
     u16_span_t screen_memory = get_gba_screen_buffer();
 
     // clear screen, and draw a blue background
