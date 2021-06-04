@@ -82,3 +82,34 @@ get_next_split(
         .count = full_span.count - current_split.count - current_split_offset };
     return get_first_split(remaining_span, split_char);
 }
+
+void
+memset_u8(
+    u8_span_t dest,
+    uint8_t byte,
+    size_t count)
+{
+    dbg_assert(dest.count >= count);
+    memset(dest.data, byte, count);
+}
+
+#define DEF_SPAN_MEMCPY(funcName, destSpanType, srcSpanType) \
+    void \
+    funcName( \
+        destSpanType dest, \
+        srcSpanType src) \
+    { \
+        /* dest should be bigger than the src */ \
+        dbg_assert(dest.count >= src.count); \
+        /* dest and src shouldn't overlap */ \
+        dbg_assert( \
+            src.data >= dest.data + dest.count || \
+            dest.data >= src.data + src.count); \
+                                                \
+        memcpy(dest.data, src.data, src.count * sizeof(src.data[0])); \
+    }
+
+DEF_SPAN_MEMCPY(memcpy_u8, u8_span_t, cu8_span_t)
+DEF_SPAN_MEMCPY(memcpy_u16, u16_span_t, cu16_span_t)
+
+#undef DEF_SPAN_MEMCPY

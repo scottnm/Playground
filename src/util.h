@@ -21,7 +21,7 @@
 // BUFFER HELPERS
 #ifndef ARRAYSIZE
 // Bug #4: ARRAYSIZE doesn't properly reject pointers
-#define ARRAYSIZE(arr)  (sizeof(arr) / sizeof((arr)[0]));
+#define ARRAYSIZE(arr)  (sizeof(arr) / sizeof((arr)[0]))
 #endif // !ARRAYSIZE
 
 //////////////////
@@ -54,7 +54,17 @@ make_str(
         size_t count; \
     } typename
 
-#define AS_SPAN(arr) { .data=(arr), .count=ARRAYSIZE(arr) }
+DEF_SPAN_T(char, char_span_t);
+DEF_SPAN_T(uint8_t, u8_span_t);
+DEF_SPAN_T(uint16_t, u16_span_t);
+
+DEF_SPAN_T(const char, cchar_span_t);
+DEF_SPAN_T(const uint8_t, cu8_span_t);
+DEF_SPAN_T(const uint16_t, cu16_span_t);
+
+#undef DEF_SPAN_T
+
+#define as_span(spanType, arr) (spanType) { .data=(arr), .count=ARRAYSIZE(arr) }
 
 #define SPAN_ADV(span, advCount) \
     do { \
@@ -68,10 +78,6 @@ make_str(
         .data = (span).data, \
         .count = min((span).count, cnt), \
     }
-
-DEF_SPAN_T(char, char_span_t);
-DEF_SPAN_T(uint8_t, u8_span_t);
-DEF_SPAN_T(uint16_t, u16_span_t);
 
 char_span_t
 get_first_split(
@@ -91,10 +97,22 @@ get_next_split(
         iter_var_name = get_next_split((iter_var_name), (buffer), (split_char)) \
         ) \
 
-static inline void memset_u8(u8_span_t dest, uint8_t byte, size_t count)
-{
-    dbg_assert(dest.count >= count);
-    memset(dest.data, byte, count);
-}
+void
+memset_u8(
+    u8_span_t dest,
+    uint8_t byte,
+    size_t count);
+
+#define DECL_SPAN_MEMCPY(funcName, destSpanType, srcSpanType) \
+    void \
+    funcName( \
+        destSpanType dest, \
+        srcSpanType src);
+
+DECL_SPAN_MEMCPY(memcpy_u8, u8_span_t, cu8_span_t)
+DECL_SPAN_MEMCPY(memcpy_u16, u16_span_t, cu16_span_t)
+
+#undef DECL_SPAN_MEMCPY
+
 #endif // __UTIL_H__
 
