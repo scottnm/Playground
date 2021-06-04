@@ -23,7 +23,11 @@ rgb16(
 typedef enum video_mode_options_t
 {
     VIDEO_MODE_UNSET = 0,
+    // Mode 3 - VRAM is read as a linear sequence of 16 bit values to form a bitmap
     VIDEO_MODE_MODE3_16BIT_LINEAR_BITMAP = 3,
+    // Mode 4 - VRAM is read as a linear sequence of 8 bit values corresponding to a palette.
+    // Since half the memory is required to set each pixel, VRAM supports double buffering
+    VIDEO_MODE_8BIT_PALETTE_LINEAR_DOUBLE_BUFFER = 4,
 } video_mode_options_t;
 
 typedef struct video_mode_t
@@ -43,18 +47,21 @@ typedef struct bg_mode_t
     bg_mode_options_t value;
 } bg_mode_t;
 
+void
+set_gba_display_mode(
+    video_mode_t video_mode,
+    bg_mode_t bg_mode);
+
 u16_span_t
 get_gba_mode3_screen_buffer();
+
+u16_span_t
+get_gba_mode4_palette_buffer();
 
 uint32_t
 get_gba_pixel_index(
     uint8_t row,
     uint8_t col);
-
-void
-set_gba_display_mode(
-    video_mode_t video_mode,
-    bg_mode_t bg_mode);
 
 #endif // __GBA_UTIL_H__
 

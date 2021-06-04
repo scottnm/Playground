@@ -9,24 +9,6 @@ typedef uint32_t register_t;
 
 static register_t* s_display_control_register = (register_t*)0x4000000; // REG_DISPCNT
 
-u16_span_t
-get_gba_mode3_screen_buffer()
-{
-    // GBA's VRAM starts at 0x6000000
-    return (u16_span_t) {
-        .data = (uint16_t*)0x6000000,
-        .count = NUM_PIXELS,
-    };
-}
-
-uint32_t
-get_gba_pixel_index(
-    uint8_t row,
-    uint8_t col)
-{
-    return (row * SCREEN_WIDTH) + col;
-}
-
 void
 set_gba_display_mode(
     video_mode_t video_mode,
@@ -43,6 +25,24 @@ set_gba_display_mode(
         | (0x1 << bg_mode.value);
 
     *s_display_control_register = display_control;
+}
+
+u16_span_t
+get_gba_mode3_screen_buffer()
+{
+    // GBA's VRAM starts at 0x6000000
+    return (u16_span_t) {
+        .data = (uint16_t*)0x6000000,
+        .count = NUM_PIXELS,
+    };
+}
+
+uint32_t
+get_gba_pixel_index(
+    uint8_t row,
+    uint8_t col)
+{
+    return (row * SCREEN_WIDTH) + col;
 }
 
 //
