@@ -19,7 +19,6 @@ if (!$?)
 
 if ($Run)
 {
-    Write-Warning "Run not yet supported"
-    # Write-Host -ForegroundColor Cyan "`nRunning:"
-    # .\bin\slide.exe
+    Write-Host -ForegroundColor Cyan "`nRunning:"
+    VisualBoyAdvance.exe .\bin\hello.gba
 }
