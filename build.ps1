@@ -3,7 +3,12 @@ param(
     )
 
 # cl /TC .\src\*.c /I .\src\ /W4 /WX /Z7 /nologo /Fo:.\obj\ /Fe:.\bin\gba_hello.exe
-gcc -std=c99 -o .\bin\hello.elf .\src\*.c -I .\ext\std_include -lm
+gcc `
+    -std=c99 `
+    .\src\*.c `
+    -I .\ext\std_include `
+    -o .\bin\hello.elf `
+    -lm
 if (!$?)
 {
     Write-Warning "Failed to run gcc!"
