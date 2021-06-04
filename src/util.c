@@ -1,6 +1,5 @@
 #include "pch.h"
 
-/* FIXME: stubbing
 bool
 str_starts_with(
     str_t s,
@@ -83,4 +82,3 @@ get_next_split(
         .count = full_span.count - current_split.count - current_split_offset };
     return get_first_split(remaining_span, split_char);
 }
-*/
