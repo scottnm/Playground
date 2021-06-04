@@ -1,6 +1,6 @@
 # GBA Hello
 
-This is a simple Hello World style project for the GBA and also a place to collect all of my early learning dev notes forthe GBA.
+This is a simple Hello World style project for the GBA and also a place to collect all of my early learning dev notes for the GBA.
 
 ## Table of contents
 
