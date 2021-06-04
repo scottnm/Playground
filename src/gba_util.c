@@ -39,7 +39,7 @@ set_gba_display_mode(
     // For full docs on how this register is set, see the REG_DISPCNT docs below
     const register_t display_control = 0x0
         // the video mode is the first 3 bits
-        | (0x7 && video_mode.value)
+        | (0x7 & video_mode.value)
         // set the single bit represented by the bg mode
         | (0x1 << bg_mode.value);
 
