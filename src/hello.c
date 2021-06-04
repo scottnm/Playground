@@ -22,10 +22,7 @@ main(
     u8_span_t screen_memory = get_gba_mode4_screen_buffer();
 
     // clear screen, and draw a blue background
-    for (uint32_t pixel = 0; pixel < screen_memory.count; pixel += 1)
-    {
-        screen_memory.data[pixel] = HELLO_MODE4_PALETTE_BLUE;
-    }
+    memset_u8(screen_memory, HELLO_MODE4_PALETTE_BLUE, screen_memory.count);
 
     // draw a white HI on the background
     {
@@ -41,11 +38,12 @@ main(
         }
 
         // draw the horizontal bar for the H
-        uint32_t h_bar_offset = get_gba_pixel_index(40, 20);
-        for (uint32_t i = 0; i < 15; i += 1)
-        {
-            screen_memory.data[h_bar_offset + i] = HELLO_MODE4_PALETTE_WHITE;
-        }
+        uint32_t h_bar_start = get_gba_pixel_index(40, 20);
+        const size_t h_bar_length = 15;
+        memset_u8(
+            (u8_span_t) { .data = screen_memory.data + h_bar_start, .count = h_bar_length },
+            HELLO_MODE4_PALETTE_WHITE,
+            h_bar_length);
     }
 
     while (true)

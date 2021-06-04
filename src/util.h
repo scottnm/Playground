@@ -88,5 +88,10 @@ get_next_split(
         iter_var_name = get_next_split((iter_var_name), (buffer), (split_char)) \
         ) \
 
+static inline void memset_u8(u8_span_t dest, uint8_t byte, size_t count)
+{
+    dbg_assert(dest.count >= count);
+    memset(dest.data, byte, count);
+}
 #endif // __UTIL_H__
 
