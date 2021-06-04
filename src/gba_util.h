@@ -23,7 +23,7 @@ rgb16(
 typedef enum video_mode_options_t
 {
     VIDEO_MODE_UNSET = 0,
-    VIDEO_MODE_16BIT_LINEAR_BITMAP = 3, // Mode3
+    VIDEO_MODE_MODE3_16BIT_LINEAR_BITMAP = 3,
 } video_mode_options_t;
 
 typedef struct video_mode_t
@@ -44,7 +44,7 @@ typedef struct bg_mode_t
 } bg_mode_t;
 
 u16_span_t
-get_gba_screen_buffer();
+get_gba_mode3_screen_buffer();
 
 uint32_t
 get_gba_pixel_index(

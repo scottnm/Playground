@@ -4,14 +4,13 @@
 #define SCREEN_HEIGHT 160
 #define NUM_PIXELS (SCREEN_WIDTH * SCREEN_HEIGHT)
 
-// FIXME: update stdint.h to guard against 64bit reads/writes
 // GBA uses a 32-bit arch with 32-bit registers
 typedef uint32_t register_t;
 
 static register_t* s_display_control_register = (register_t*)0x4000000; // REG_DISPCNT
 
 u16_span_t
-get_gba_screen_buffer()
+get_gba_mode3_screen_buffer()
 {
     // GBA's VRAM starts at 0x6000000
     return (u16_span_t) {
