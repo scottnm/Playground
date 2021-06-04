@@ -1,4 +1,5 @@
-// #pragma once
+#ifndef __UTIL_H__
+#define __UTIL_H__
 
 /* FIXME: stubbing
 /////////////////
@@ -77,3 +78,6 @@ get_next_split(
         iter_var_name = get_next_split((iter_var_name), (buffer), (split_char)) \
         ) \
         */
+
+#endif // __UTIL_H__
+

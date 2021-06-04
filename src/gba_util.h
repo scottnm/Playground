@@ -1,4 +1,5 @@
-// #pragma once
+#ifndef __GBA_UTIL_H__
+#define __GBA_UTIL_H__
 
 /* FIXME: stubbing
 static const uint16_t COLOR_BLUE = rgb16(0, 0, 31);
@@ -26,3 +27,6 @@ get_gba_pixel_index(
     uint8_t col
     );
     */
+
+#endif // __GBA_UTIL_H__
+
