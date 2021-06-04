@@ -1,4 +1,4 @@
-#pragma once
+// #pragma once
 
 /* FIXME: stubbing
 static const uint16_t COLOR_BLUE = rgb16(0, 0, 31);
