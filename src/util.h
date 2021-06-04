@@ -5,7 +5,7 @@
 // UTILITY MACROS
 #define STATEMENT(X) do { (X); } while(0)
 #define UNREF(X) STATEMENT((void)(X))
-#define TODO(TODO_MSG) assert(false && "Todo! " TODO_MSG)
+#define TODO(TODO_MSG) dbg_assert(false && "Todo! " TODO_MSG)
 
 //////////////////
 // BUFFER HELPERS

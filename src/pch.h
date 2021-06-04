@@ -11,6 +11,7 @@
 #include <string.h>
 
 // MINE
+#include "dbg.h"
 #include "util.h"
 #include "gba_util.h"
 

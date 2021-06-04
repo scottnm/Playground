@@ -14,9 +14,9 @@ rgb16(
     uint8_t g,
     uint8_t b)
 {
-    assert(r < 32);
-    assert(g < 32);
-    assert(b < 32);
+    dbg_assert(r < 32);
+    dbg_assert(g < 32);
+    dbg_assert(b < 32);
     return r + (g<<5) + (b<<10);
 }
 

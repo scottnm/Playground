@@ -53,7 +53,7 @@ get_first_split(
         return (char_span_t){0};
     }
 
-    assert(buffer.data != NULL);
+    dbg_assert(buffer.data != NULL);
 
     char* split_char_ptr = memchr(buffer.data, split_char, buffer.count);
     if (split_char_ptr == NULL)
@@ -71,9 +71,9 @@ get_next_split(
     const char_span_t full_span,
     char split_char)
 {
-    assert(current_split.count <= full_span.count);
-    assert(current_split.data >= full_span.data);
-    assert(current_split.data <= full_span.data + full_span.count);
+    dbg_assert(current_split.count <= full_span.count);
+    dbg_assert(current_split.data >= full_span.data);
+    dbg_assert(current_split.data <= full_span.data + full_span.count);
 
     // Skip over any leading split chars
     size_t current_split_offset = current_split.data - full_span.data;
