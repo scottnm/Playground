@@ -11,7 +11,8 @@ $compilerFlags = @(
     "-mthumb-interwork",
     "-I .\ext\std_include",
     "-Wall",
-    "-pedantic"
+    "-pedantic",
+    "-Werror"
 )
 
 if ($Release)
