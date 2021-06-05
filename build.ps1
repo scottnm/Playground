@@ -4,27 +4,38 @@ param(
     )
 
 # cl /TC .\src\*.c /I .\src\ /W4 /WX /Z7 /nologo /Fo:.\obj\ /Fe:.\bin\gba_hello.exe
-$DebugArg = if (!$Release) { "-DDBG" } else { "" }
+$compilerFlags = @(
+    "-c",
+    "-std=c99",
+    "-mthumb", # FIXME: what does this mthumb and mthumb-interwork stuff do? need to figure that out
+    "-mthumb-interwork",
+    "-I .\ext\std_include",
+    "-Wall",
+    "-pedantic"
+)
+
 if ($Release)
 {
-    $DebugArg = ""
-    $OptimizationLevel = "2"
-    $ObjDir = ".\obj\rel\"
-    $BinDir = ".\bin\rel\"
+    $compilerFlags += "-O2" # O2 optimization level
+    $ObjDir = ".\obj\rel"
+    $BinDir = ".\bin\rel"
 }
 else
 {
-    $OptimizationLevel = "0"
-    $DebugArg = "-DDBG"
-    $ObjDir = ".\obj\dbg\"
-    $BinDir = ".\bin\dbg\"
+    $compilerFlags += "-DDBG"
+    $compilerFlags += "-O0"  # no optimization
+    $ObjDir = ".\obj\dbg"
+    $BinDir = ".\bin\dbg"
 }
 
-$filesToLink = ""
+$elfBinary = "$BinDir\hello.elf"
+$gbaBinary = "$BinDir\hello.gba"
+
+$objFilesToLink = @()
 dir .\src\*.c | %{
     $fileBaseName = $_.BaseName
     $objName = "$ObjDir\$fileBaseName.o"
-    $cmd = "gcc -c -std=c99 $DebugArg $_ -I .\ext\std_include -Wall -pedantic -O$OptimizationLevel -o $objName"
+    $cmd = "gcc $($compilerFlags -Join " ") $_ -o $objName"
     Write-Host -ForegroundColor DarkGray $cmd
     invoke-expression -Command $cmd
 
@@ -34,10 +45,15 @@ dir .\src\*.c | %{
         return;
     }
 
-    $filesToLink += "$objName "
+    $objFilesToLink += $objName
 }
 
-$linkerCmd = "gcc $filesToLink -o $BinDir\hello.elf"
+$linkerFlags = @(
+    "-mthumb",
+    "-mthumb-interwork"
+)
+
+$linkerCmd = "gcc $($linkerFlags -join " ") $($objFilesToLink -join " ") -o $elfBinary"
 Write-Host -ForegroundColor DarkGray $linkerCmd
 invoke-expression $linkerCmd
 if (!$?)
@@ -46,9 +62,9 @@ if (!$?)
     return;
 }
 
-objcopy `
-    -O binary "$BinDir\hello.elf" `
-    "$BinDir\hello.gba"
+$objCopyCmd = "objcopy -O binary $elfBinary $gbaBinary"
+Write-Host -ForegroundColor DarkGray $objCopyCmd
+invoke-expression $objCopyCmd
 if (!$?)
 {
     Write-Warning "Failed to run objcopy!"
@@ -58,5 +74,5 @@ if (!$?)
 if ($Run)
 {
     Write-Host -ForegroundColor Cyan "`nRunning:"
-    VisualBoyAdvance.exe "$BinDir\hello.gba"
+    VisualBoyAdvance.exe $gbaBinary
 }

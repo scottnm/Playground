@@ -4,11 +4,6 @@
 
 #define PALETTE_LIME_GREEN 75
 
-// FIXME: tankgba has an interesting note in it about some useful compiler flags
-// -mthumb
-// -mthumb-interwork
-// Apparently it runs crazy slow without it... maybe this validates me
-
 int
 main(
     void)
