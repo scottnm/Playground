@@ -9,23 +9,6 @@
 // -mthumb-interwork
 // Apparently it runs crazy slow without it... maybe this validates me
 
-vsync_state_t
-block_till_next_frame(
-    vsync_state_t vsync
-    )
-{
-    // Block until we vsync
-    do
-    {
-        vsync = vsync_poll(vsync);
-    } while(!vsync_is_new_frame(vsync));
-
-    // flip the frame buffer
-    flip_gba_mode4_screen_buffer();
-
-    return vsync;
-}
-
 int
 main(
     void)
@@ -54,11 +37,12 @@ main(
     u8vec2_t block_position = { .x = 50, .y = 50 };
     const u8vec2_t block_size = { .x = 10, .y = 10 };
 
-    vsync_state_t vsync = {0};
     while (true)
     {
         // Lock our input polling and drawing to a 60hz frame rate.
-        vsync = block_till_next_frame(vsync);
+        block_until_gba_vsync();
+        flip_gba_mode4_screen_buffer();
+        u8_span_t screen_memory = get_gba_mode4_screen_buffer();
 
         // FIXME: Figure out how to account for delta time here
         input_t input = poll_input();
@@ -80,7 +64,6 @@ main(
         }
 
         // Draw the picture
-        u8_span_t screen_memory = get_gba_mode4_screen_buffer();
         memcpy_u8(screen_memory, picture_bytes);
 
         // Draw the green square
