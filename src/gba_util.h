@@ -86,5 +86,18 @@ typedef struct input_t {
 input_t
 poll_input();
 
+typedef struct vsync_state_t {
+    uint32_t value;
+} vsync_state_t;
+ASSERT_STRONG_TYPEDEF_SIZE(vsync_state_t);
+
+vsync_state_t
+vsync_poll(
+    vsync_state_t vsync);
+
+bool
+vsync_is_new_frame(
+    vsync_state_t vsync);
+
 #endif // __GBA_UTIL_H__
 

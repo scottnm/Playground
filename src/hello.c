@@ -33,8 +33,18 @@ main(
 
     u8vec2_t block_position = { .x = 50, .y = 50 };
     const u8vec2_t block_size = { .x = 10, .y = 10 };
+
+    vsync_state_t vsync = {0};
     while (true)
     {
+        // Lock our input polling and drawing to a 60hz frame rate.
+        vsync = vsync_poll(vsync);
+        if (!vsync_is_new_frame(vsync))
+        {
+            continue;
+        }
+
+        // FIXME: Figure out how to account for delta time here
         input_t input = poll_input();
         if (input.dpad_up_pressed)
         {
@@ -66,9 +76,8 @@ main(
             memset_u8(
                 (u8_span_t) { .data = screen_memory.data + pixel_offset, .count = block_width },
                 PALETTE_LIME_GREEN);
-
         }
-        // Loop forever
     }
+
     return 0;
 }

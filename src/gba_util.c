@@ -10,6 +10,7 @@ typedef uint32_t register32_t;
 
 static register32_t* s_display_control_register = (register32_t*)0x4000000; // REG_DISPCNT
 static const register16_t* s_input_register = (const register16_t*)0x04000130; // REG_KEY (read-only)
+static const register16_t* s_display_status_register = (const register16_t*)0x4000004; // REG_DISPSTAT
 
 typedef struct display_mode_t {
     video_mode_t video_mode;
@@ -114,6 +115,48 @@ poll_input()
     };
 }
 
+typedef union vsync_state_internal_t {
+    struct {
+        bool is_vblank;
+        bool has_changed;
+    } internal_view;
+    vsync_state_t external_view;
+} vsync_state_internal_t;
+// The sizes of the internal union and external struct must match. This guarantees that the external struct is at least
+// as large as the internal struct so that all writes to the internal struct are captured in the external struct.
+static_assert(sizeof(vsync_state_t) == sizeof(vsync_state_internal_t), VSync_struct_sizes_must_match);
+
+vsync_state_t
+vsync_poll(
+    vsync_state_t vsync)
+{
+    // For full docs on how this register is set, see the REG_DISPSTAT docs below
+    const register16_t display_status = *s_display_status_register;
+
+    // the first bit of the display status is the vrefresh status
+    bool vrefresh_status_is_vblank = (display_status & 0x1) == 1;
+
+    const vsync_state_internal_t* vsync_data = (const vsync_state_internal_t*)&vsync;
+    bool vrefresh_status_changed = (vsync_data->internal_view.is_vblank != vrefresh_status_is_vblank);
+
+    const vsync_state_internal_t new_state = {
+        .internal_view = {
+            .is_vblank = vrefresh_status_is_vblank,
+            .has_changed = vrefresh_status_changed,
+        },
+    };
+
+    return new_state.external_view;
+}
+
+bool
+vsync_is_new_frame(
+    vsync_state_t vsync)
+{
+    const vsync_state_internal_t* vsync_data = (const vsync_state_internal_t*)&vsync;
+    return vsync_data->internal_view.has_changed && vsync_data->internal_view.is_vblank;
+}
+
 //
 // AUX HARDWARE DOCS
 //
@@ -167,3 +210,24 @@ poll_input()
 // 8 (I) = Right shoulder button
 // 9 (J) = Left shoulder button
 
+// DISPLAY_STATUS REGISTER (REG_DISPSTAT)
+//
+//                              R R R
+// F E D C  B A 9 8  7 6 5 4  3 2 1 0
+// T T T T  T T T T  X X Y H  V Z G W
+// 0   (W) = V Refresh status. This will be 0 during VDraw, and 1 during VBlank.
+//           VDraw lasts for 160 scanlines; VBlank follows after that and lasts 68
+//           scanlines. Checking this is one alternative to checking REG_VCOUNT.
+//
+// 1   (G) = H Refresh status. This will be 0 during HDraw, and 1 during HBlank HDraw
+//           lasts for approximately 1004 cycles; HBlank follows, and lasts
+//           approximately 228 cycles, though the time and length of HBlank may in
+//           fact vary based on the number of sprites and on rotation/scaling/blending
+//           effects being performed on the current line.
+//
+// 2   (Z) = VCount Triggered Status. Gets set to 1 when a Y trigger interrupt occurs.
+// 3   (V) = Enables LCD's VBlank IRQ. This interrupt goes off at the start of VBlank.
+// 4   (H) = Enables LCD's HBlank IRQ. This interrupt goes off at the start of HBlank.
+// 5   (Y) = Enable VCount trigger IRQ. Goes off when VCount line trigger is reached.
+// 8-F (T) = Vcount line trigger. Set this to the VCount value you wish to trigger an
+//           interrupt.
