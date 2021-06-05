@@ -9,28 +9,40 @@ if ($Release)
 {
     $DebugArg = ""
     $OptimizationLevel = "2"
+    $ObjDir = ".\obj\rel\"
     $BinDir = ".\bin\rel\"
 }
 else
 {
     $OptimizationLevel = "0"
     $DebugArg = "-DDBG"
+    $ObjDir = ".\obj\dbg\"
     $BinDir = ".\bin\dbg\"
 }
 
-gcc `
-    -std=c99 `
-    $DebugArg `
-    .\src\*.c `
-    -I .\ext\std_include `
-    -Wall `
-    -pedantic `
-    "-O$OptimizationLevel" `
-    -o "$BinDir\hello.elf" `
-    -lm
+$filesToLink = ""
+dir .\src\*.c | %{
+    $fileBaseName = $_.BaseName
+    $objName = "$ObjDir\$fileBaseName.o"
+    $cmd = "gcc -c -std=c99 $DebugArg $_ -I .\ext\std_include -Wall -pedantic -O$OptimizationLevel -o $objName"
+    Write-Host -ForegroundColor DarkGray $cmd
+    invoke-expression -Command $cmd
+
+    if (!$?)
+    {
+        Write-Warning "Failed to compile $_!"
+        return;
+    }
+
+    $filesToLink += "$objName "
+}
+
+$linkerCmd = "gcc $filesToLink -o $BinDir\hello.elf"
+Write-Host -ForegroundColor DarkGray $linkerCmd
+invoke-expression $linkerCmd
 if (!$?)
 {
-    Write-Warning "Failed to run gcc!"
+    Write-Warning "Failed to link!"
     return;
 }
 
