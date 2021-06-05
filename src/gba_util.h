@@ -65,6 +65,9 @@ get_gba_mode4_palette_buffer();
 u8_span_t
 get_gba_mode4_screen_buffer();
 
+void
+flip_gba_mode4_screen_buffer();
+
 uint32_t
 get_gba_pixel_index(
     uint8_t row,

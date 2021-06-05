@@ -12,6 +12,14 @@ static register32_t* s_display_control_register = (register32_t*)0x4000000; // R
 static const register16_t* s_input_register = (const register16_t*)0x04000130; // REG_KEY (read-only)
 static const register16_t* s_display_status_register = (const register16_t*)0x4000004; // REG_DISPSTAT
 
+// In Mode4, GBA's VRAM is split into two buffers.
+// The first buffer starts at 0x6000000
+// The second buffer starts at 0x600A000
+// This isn't just splitting the mode3 buffer in half. It's unclear why.
+static uint8_t*const s_mode4_front_screen_buffer = (uint8_t*)0x6000000;
+static uint8_t*const s_mode4_back_screen_buffer  = (uint8_t*)0x600A000;
+static uint8_t* s_mode4_current_screen_buffer = NULL;
+
 typedef struct display_mode_t {
     video_mode_t video_mode;
     bg_mode_t bg_mode;
@@ -49,6 +57,9 @@ set_gba_display_mode(
         | (0x1 << bg_mode.value);
 
     *s_display_control_register = display_control;
+
+    // Ensure s_mode4_current_screen_buffer is setup (even if mode4 isn't used)
+    s_mode4_current_screen_buffer = s_mode4_front_screen_buffer;
 }
 
 u16_span_t
@@ -78,14 +89,41 @@ get_gba_mode4_palette_buffer()
 u8_span_t
 get_gba_mode4_screen_buffer()
 {
-    // Bug #3: add support for mode4 double buffering
     dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE4_8BIT_PALETTE);
 
-    // GBA's VRAM starts at 0x6000000
     return (u8_span_t) {
-        .data = (uint8_t*)0x6000000,
+        .data = s_mode4_current_screen_buffer,
         .count = NUM_PIXELS,
     };
+}
+
+void
+flip_gba_mode4_screen_buffer()
+{
+    dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE4_8BIT_PALETTE);
+
+    // For full docs on how this register is set, see the REG_DISPCNT docs below
+    register32_t display_control = *s_display_control_register;
+
+    // The fourth bit controls whether we are using the backbuffer or not
+    static const register32_t s_backbuffer_bit = (1 << 4); // 0x10
+
+    // The backbuffer was being displayed, flip to the frontbuffer for rendering
+    uint8_t* new_inactive_screen_buffer;
+    if (display_control & s_backbuffer_bit)
+    {
+        display_control &= ~s_backbuffer_bit;
+        new_inactive_screen_buffer = s_mode4_back_screen_buffer;
+    }
+    // The frontbuffer was being displayed, flip to the backbuffer for rendering
+    else
+    {
+        display_control |= s_backbuffer_bit;
+        new_inactive_screen_buffer = s_mode4_front_screen_buffer;
+    }
+
+    s_mode4_current_screen_buffer = new_inactive_screen_buffer;
+    *s_display_control_register = display_control;
 }
 
 uint32_t

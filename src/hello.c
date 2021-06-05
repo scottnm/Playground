@@ -4,6 +4,23 @@
 
 #define PALETTE_LIME_GREEN 75
 
+vsync_state_t
+block_till_next_frame(
+    vsync_state_t vsync
+    )
+{
+    // Block until we vsync
+    do
+    {
+        vsync = vsync_poll(vsync);
+    } while(!vsync_is_new_frame(vsync));
+
+    // flip the frame buffer
+    flip_gba_mode4_screen_buffer();
+
+    return vsync;
+}
+
 int
 main(
     void)
@@ -17,8 +34,6 @@ main(
         cu16_span_t source_palette = as_span(cu16_span_t, g_picPalette);
         memcpy_u16(system_palette, source_palette);
     }
-
-    u8_span_t screen_memory = get_gba_mode4_screen_buffer();
 
     cu8_span_t picture_bytes = {
         .data = (const uint8_t*)g_picData,
@@ -38,11 +53,7 @@ main(
     while (true)
     {
         // Lock our input polling and drawing to a 60hz frame rate.
-        vsync = vsync_poll(vsync);
-        if (!vsync_is_new_frame(vsync))
-        {
-            continue;
-        }
+        vsync = block_till_next_frame(vsync);
 
         // FIXME: Figure out how to account for delta time here
         input_t input = poll_input();
@@ -64,6 +75,7 @@ main(
         }
 
         // Draw the picture
+        u8_span_t screen_memory = get_gba_mode4_screen_buffer();
         memcpy_u8(screen_memory, picture_bytes);
 
         // Draw the green square
