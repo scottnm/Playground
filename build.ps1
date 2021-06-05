@@ -3,17 +3,19 @@ param(
     [switch]$Run
     )
 
-# cl /TC .\src\*.c /I .\src\ /W4 /WX /Z7 /nologo /Fo:.\obj\ /Fe:.\bin\gba_hello.exe
 $compilerFlags = @(
     "-c",
     "-std=c99",
-    "-mthumb", # FIXME: what does this mthumb and mthumb-interwork stuff do? need to figure that out
-    "-mthumb-interwork",
     "-I .\ext\std_include",
     "-Wall",
     "-pedantic",
     "-Werror"
 )
+
+# -mthumb and -mthumb-interwork allow for using thumb instructions in our binary.
+# This significantly speeds up program execution
+$compilerFlags += "-mthumb";
+$compilerFlags += "-mthumb-interwork";
 
 if ($Release)
 {
@@ -36,14 +38,14 @@ $objFilesToLink = @()
 dir .\src\*.c | %{
     $fileBaseName = $_.BaseName
     $objName = "$ObjDir\$fileBaseName.o"
-    $cmd = "gcc $($compilerFlags -Join " ") $_ -o $objName"
+    $cmd = "gcc $($compilerFlags -Join " ") $_ -o $objName"+ ';$?'
     Write-Host -ForegroundColor DarkGray $cmd
-    invoke-expression -Command $cmd
+    $success = invoke-expression -Command $cmd
 
-    if (!$?)
+    if (!$success)
     {
         Write-Warning "Failed to compile $_!"
-        return;
+        exit;
     }
 
     $objFilesToLink += $objName
@@ -54,22 +56,22 @@ $linkerFlags = @(
     "-mthumb-interwork"
 )
 
-$linkerCmd = "gcc $($linkerFlags -join " ") $($objFilesToLink -join " ") -o $elfBinary"
+$linkerCmd = "gcc $($linkerFlags -join " ") $($objFilesToLink -join " ") -o $elfBinary" + ';$?'
 Write-Host -ForegroundColor DarkGray $linkerCmd
-invoke-expression $linkerCmd
-if (!$?)
+$success = invoke-expression $linkerCmd
+if (!$success)
 {
     Write-Warning "Failed to link!"
-    return;
+    exit;
 }
 
-$objCopyCmd = "objcopy -O binary $elfBinary $gbaBinary"
+$objCopyCmd = "objcopy -O binary $elfBinary $gbaBinary" + ';$?'
 Write-Host -ForegroundColor DarkGray $objCopyCmd
-invoke-expression $objCopyCmd
-if (!$?)
+$success = invoke-expression $objCopyCmd
+if (!$success)
 {
     Write-Warning "Failed to run objcopy!"
-    return;
+    exit;
 }
 
 if ($Run)
