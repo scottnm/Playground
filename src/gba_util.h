@@ -56,22 +56,30 @@ set_gba_display_mode(
     video_mode_t video_mode,
     bg_mode_t bg_mode);
 
-u16_span_t
-get_gba_mode3_screen_buffer();
+// Bug: Don't just give buffers back to the app-layer. It seems like GBA VRAM writing requires some special sauce
+// and I don't trust myself enough to always use the correct memory-writing conventions when dealing with raw buffers.
+// All VRAM writes should be abstracted and stored in gba_util.c
+// u16_span_t
+// get_gba_mode3_screen_buffer();
 
 u16_span_t
 get_gba_mode4_palette_buffer();
 
-u8_span_t
-get_gba_mode4_screen_buffer();
-
 void
 flip_gba_mode4_screen_buffer();
 
-uint32_t
-get_gba_pixel_index(
-    uint8_t row,
-    uint8_t col);
+void
+fill_gba_mode4_screen_buffer(
+    size_t start_row,
+    size_t start_col,
+    uint8_t palette_value,
+    size_t fill_length);
+
+void
+copy_gba_mode4_screen_buffer(
+    size_t start_row,
+    size_t start_col,
+    cu8_span_t src_mode4_palette_colors);
 
 typedef struct input_t {
     bool a_pressed;

@@ -37,7 +37,6 @@ main(
         // Lock our input polling and drawing to a 60hz frame rate.
         block_until_gba_vsync();
         flip_gba_mode4_screen_buffer();
-        u8_span_t screen_memory = get_gba_mode4_screen_buffer();
 
         // FIXME: Figure out how to account for delta time here
         input_t input = poll_input();
@@ -59,18 +58,16 @@ main(
         }
 
         // Draw the picture
-        memcpy_u8(screen_memory, picture_bytes);
+        copy_gba_mode4_screen_buffer(0, 0, picture_bytes);
 
         // Draw the green square
         for (uint8_t block_row = 0; block_row < block_size.y; block_row += 1)
         {
-            uint8_t block_width = block_size.x;
-            uint8_t col_start = block_position.x;
-            uint8_t row = block_row + block_position.y;
-            uint32_t pixel_offset = get_gba_pixel_index(row, col_start);
-            memset_u8(
-                (u8_span_t) { .data = screen_memory.data + pixel_offset, .count = block_width },
-                PALETTE_LIME_GREEN);
+            const uint8_t row = block_row + block_position.y;
+            const uint8_t col_start = block_position.x;
+            const uint8_t block_width = block_size.x;
+
+            fill_gba_mode4_screen_buffer(row, col_start, PALETTE_LIME_GREEN, block_width);
         }
     }
 

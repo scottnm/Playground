@@ -20,6 +20,27 @@ static uint8_t*const s_mode4_front_screen_buffer = (uint8_t*)0x6000000;
 static uint8_t*const s_mode4_back_screen_buffer  = (uint8_t*)0x600A000;
 static uint8_t* s_mode4_current_screen_buffer = NULL;
 
+static
+uint32_t
+get_gba_pixel_index(
+    uint8_t row,
+    uint8_t col)
+{
+    return (row * SCREEN_WIDTH) + col;
+}
+
+static
+u8_span_t
+get_gba_mode4_screen_buffer()
+{
+    dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE4_8BIT_PALETTE);
+
+    return (u8_span_t) {
+        .data = s_mode4_current_screen_buffer,
+        .count = NUM_PIXELS,
+    };
+}
+
 typedef struct display_mode_t {
     video_mode_t video_mode;
     bg_mode_t bg_mode;
@@ -86,17 +107,6 @@ get_gba_mode4_palette_buffer()
     };
 }
 
-u8_span_t
-get_gba_mode4_screen_buffer()
-{
-    dbg_assert(get_gba_display_mode().video_mode.value == VIDEO_MODE_MODE4_8BIT_PALETTE);
-
-    return (u8_span_t) {
-        .data = s_mode4_current_screen_buffer,
-        .count = NUM_PIXELS,
-    };
-}
-
 void
 flip_gba_mode4_screen_buffer()
 {
@@ -126,12 +136,121 @@ flip_gba_mode4_screen_buffer()
     *s_display_control_register = display_control;
 }
 
-uint32_t
-get_gba_pixel_index(
-    uint8_t row,
-    uint8_t col)
+// Bug #6: faster u16 filles
+// Using memset father than u16 aligned fill is WAYYYY faster but results in some artifacting. I wonder if we can
+// define a faster u16 copy based on how memset works? Since this fill is only used for drawing large backgrounds
+// (where the arficating is imperceptible) prefer the faster writes for now.
+#define USE_U16_ALIGNED_MODE4_FILL
+
+void
+fill_gba_mode4_screen_buffer(
+    size_t start_row,
+    size_t start_col,
+    uint8_t palette_value,
+    size_t fill_length)
 {
-    return (row * SCREEN_WIDTH) + col;
+    const size_t pixel_offset = get_gba_pixel_index(start_row, start_col);
+    u8_span_t screen_buffer;
+    {
+        const u8_span_t full_screen_buffer = get_gba_mode4_screen_buffer();
+        screen_buffer = (u8_span_t) {
+            .data = full_screen_buffer.data + pixel_offset,
+            .count = fill_length,
+        };
+    }
+
+#ifdef USE_U16_ALIGNED_MODE4_FILL
+    // This function fills the gba mode4 screen buffer with a single palette byte. Most notably it takes care to write
+    // this byte as u16-sized chunks. I need to look up more info on this but I believe this is important for some
+    // hardware reason such as the bus to VRAM being 16-bit sized. Anecdotally, I've noticed weird visual artifacts
+    // when I attempt to use something like memset to write a stream of bytes in an "efficient way". I suspect this
+    // could be because the writes aren't happening in an alignment that the hardware is happy with.
+
+    uint16_t doubled_palette_value = ((uint16_t)(palette_value << 0x8)) + palette_value;
+    const u16_span_t screen_buffer_u16 = { .data = (uint16_t*) screen_buffer.data, .count = screen_buffer.count / 2 };
+
+    uint16_t* dest_u16p = screen_buffer_u16.data;
+    size_t writes_left = screen_buffer_u16.count + 1;
+    while (writes_left > 0)
+    {
+        *dest_u16p = doubled_palette_value;
+        dest_u16p += 1;
+        writes_left -= 1;
+    }
+
+    /*
+    for (size_t i = 0; i < screen_buffer_u16.count; ++i)
+    {
+        screen_buffer_u16.data[i] = doubled_palette_value;
+    }
+    */
+
+    // If an odd fill_length was passed to this function we'll need to write the final
+    // byte in a non-u16 aligned way.
+    const bool trailing_byte = (fill_length & 0x1);
+    if (trailing_byte)
+    {
+        screen_buffer.data[screen_buffer.count - 1] = palette_value;
+    }
+#else // USE_U16_ALIGNED_MODE4_FILL
+    memset_u8(screen_buffer, palette_value);
+#endif // USE_U16_ALIGNED_MODE4_FILL
+}
+
+
+// Bug #5: full screen mode 4 vram copies REALLLY slow down our game.
+// #define USE_U16_ALIGNED_MODE4_COPY
+
+void
+copy_gba_mode4_screen_buffer(
+    size_t start_row,
+    size_t start_col,
+    cu8_span_t src_mode4_palette_colors)
+{
+    const size_t pixel_offset = get_gba_pixel_index(start_row, start_col);
+    u8_span_t screen_buffer;
+    {
+        const u8_span_t full_screen_buffer = get_gba_mode4_screen_buffer();
+        screen_buffer = (u8_span_t) {
+            .data = full_screen_buffer.data + pixel_offset,
+            .count = src_mode4_palette_colors.count,
+        };
+    }
+
+// Bug #5: full screen mode 4 vram copies REALLLY slow down our game.
+#ifdef USE_U16_ALIGNED_MODE4_COPY
+    // This function fills the gba mode4 screen buffer with a single palette byte. Most notably it takes care to write
+    // this byte as u16-sized chunks. I need to look up more info on this but I believe this is important for some
+    // hardware reason such as the bus to VRAM being 16-bit sized. Anecdotally, I've noticed weird visual artifacts
+    // when I attempt to use something like memset to write a stream of bytes in an "efficient way". I suspect this
+    // could be because the writes aren't happening in an alignment that the hardware is happy with.
+
+
+    const u16_span_t src_mode4_palette_colors_u16 = {
+        .data = (uint16_t*) src_mode4_palette_colors.data,
+        .count = src_mode4_palette_colors.count / 2 };
+
+    const u16_span_t screen_buffer_u16 = {
+        .data = (uint16_t*) screen_buffer.data,
+        .count = screen_buffer.count / 2 };
+
+    dbg_assert(screen_buffer_u16.count == src_mode4_palette_colors_u16.count);
+    for (size_t i = 0; i < screen_buffer_u16.count; ++i)
+    {
+        screen_buffer_u16.data[i] = src_mode4_palette_colors_u16.data[i];
+    }
+
+    // If an odd-lengthed src buffer was passed to this function we'll need to write the final
+    // byte in a non-u16 aligned way.
+    const bool trailing_byte = (src_mode4_palette_colors.count & 0x1);
+    if (trailing_byte)
+    {
+        size_t last_index = screen_buffer.count - 1;
+        screen_buffer.data[last_index] = src_mode4_palette_colors.data[last_index];
+    }
+#else // USE_U16_ALIGNED_MODE4_COPY
+    memcpy_u8(screen_buffer, src_mode4_palette_colors);
+#endif // USE_U16_ALIGNED_MODE4_COPY
 }
 
 input_t
