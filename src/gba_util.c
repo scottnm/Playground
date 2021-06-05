@@ -4,10 +4,12 @@
 #define SCREEN_HEIGHT 160
 #define NUM_PIXELS (SCREEN_WIDTH * SCREEN_HEIGHT)
 
-// GBA uses a 32-bit arch with 32-bit registers
-typedef uint32_t register_t;
+// GBA uses both 16-bit and 32-bit registers
+typedef uint16_t register16_t;
+typedef uint32_t register32_t;
 
-static register_t* s_display_control_register = (register_t*)0x4000000; // REG_DISPCNT
+static register32_t* s_display_control_register = (register32_t*)0x4000000; // REG_DISPCNT
+static const register16_t* s_input_register = (const register16_t*)0x04000130; // REG_KEY (read-only)
 
 typedef struct display_mode_t {
     video_mode_t video_mode;
@@ -17,7 +19,7 @@ typedef struct display_mode_t {
 display_mode_t
 get_gba_display_mode()
 {
-    const register_t display_control = *s_display_control_register;
+    const register32_t display_control = *s_display_control_register;
 
     // First 3 bits are the video mode
     const video_mode_t video_mode = { .value = display_control & 0x7 };
@@ -39,7 +41,7 @@ set_gba_display_mode(
     dbg_assert(bg_mode.value != BG_MODE_UNSET);
 
     // For full docs on how this register is set, see the REG_DISPCNT docs below
-    const register_t display_control = 0x0
+    const register32_t display_control = 0x0
         // the video mode is the first 3 bits
         | (0x7 & video_mode.value)
         // set the single bit represented by the bg mode
@@ -93,6 +95,25 @@ get_gba_pixel_index(
     return (row * SCREEN_WIDTH) + col;
 }
 
+input_t
+poll_input()
+{
+    // For full docs on how this register is set, see the REG_KEY docs below
+    register16_t input_bits = *s_input_register;
+    return (input_t) {
+        .a_pressed               = !(input_bits & 0x001),
+        .b_pressed               = !(input_bits & 0x002),
+        .select_pressed          = !(input_bits & 0x004),
+        .start_pressed           = !(input_bits & 0x008),
+        .dpad_right_pressed      = !(input_bits & 0x010),
+        .dpad_left_pressed       = !(input_bits & 0x020),
+        .dpad_up_pressed         = !(input_bits & 0x040),
+        .dpad_down_pressed       = !(input_bits & 0x080),
+        .right_shoulder_pressed  = !(input_bits & 0x100),
+        .left_shoulder_pressed   = !(input_bits & 0x200),
+    };
+}
+
 //
 // AUX HARDWARE DOCS
 //
@@ -129,3 +150,20 @@ get_gba_pixel_index(
 // D   (U) = Enable Window 0
 // E   (V) = Enable Window 1
 // F   (W) = Enable Sprite Windows
+
+// READ-ONLY INPUT REGISTER (REG_KEY)
+//
+//              R R  R R R R  R R R R
+// F E D C  B A 9 8  7 6 5 4  3 2 1 0
+// X X X X  X X J I  D U L R  S E B A
+// 0 (A) = A button
+// 1 (B) = B button
+// 2 (E) = Select button
+// 3 (S) = Start button
+// 4 (R) = D-pad Right
+// 5 (L) = D-pad Left
+// 6 (U) = D-pad Up
+// 7 (D) = D-pad Down
+// 8 (I) = Right shoulder button
+// 9 (J) = Left shoulder button
+

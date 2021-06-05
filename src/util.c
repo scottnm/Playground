@@ -83,16 +83,6 @@ get_next_split(
     return get_first_split(remaining_span, split_char);
 }
 
-void
-memset_u8(
-    u8_span_t dest,
-    uint8_t byte,
-    size_t count)
-{
-    dbg_assert(dest.count >= count);
-    memset(dest.data, byte, count);
-}
-
 #define DEF_SPAN_MEMCPY(funcName, destSpanType, srcSpanType) \
     void \
     funcName( \

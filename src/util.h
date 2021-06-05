@@ -97,11 +97,7 @@ get_next_split(
         iter_var_name = get_next_split((iter_var_name), (buffer), (split_char)) \
         ) \
 
-void
-memset_u8(
-    u8_span_t dest,
-    uint8_t byte,
-    size_t count);
+static inline void memset_u8(u8_span_t dest, uint8_t byte) { memset(dest.data, byte, dest.count); }
 
 #define DECL_SPAN_MEMCPY(funcName, destSpanType, srcSpanType) \
     void \

@@ -70,5 +70,21 @@ get_gba_pixel_index(
     uint8_t row,
     uint8_t col);
 
+typedef struct input_t {
+    bool a_pressed;
+    bool b_pressed;
+    bool select_pressed;
+    bool start_pressed;
+    bool dpad_right_pressed;
+    bool dpad_left_pressed;
+    bool dpad_up_pressed;
+    bool dpad_down_pressed;
+    bool right_shoulder_pressed;
+    bool left_shoulder_pressed;
+} input_t;
+
+input_t
+poll_input();
+
 #endif // __GBA_UTIL_H__
 
