@@ -33,6 +33,8 @@ The GBA compiler used for this (devkitadv) is locked on a really old version of 
 
 A reverse-chronological log of little things that I learn as I go:
 
+* oh dang, according to TonC, my use of u8s and u16s may be an awful idea.
+* Oh dang, just started reading the tonc docs and it seems like starting with loriak's stuff may have been a mistake. There is a not so subtle suggestion that most tutorials are bunk and to be extra mindful of the bitmap mode tutorials
 * Tried to use the VDraw status register value to vsync and that didn't seem to work nearly as well as the waiting on the vcount register. I wonder why? I wonder if using interrupts is even better?
 * GBA is an ARM7TDMI processor and the docs for that are still readily available online! yay!
 * UGH. span types are a freaking mess in straight C (99, 11, otherwise). Lack of templates is a huge pain.
