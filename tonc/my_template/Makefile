@@ -39,7 +39,7 @@ endif
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-g -Wall -pedantic -O2\
+CFLAGS	:=	-g -std=c17 -Wall -Werror -pedantic -O2\
 		-mcpu=arm7tdmi -mtune=arm7tdmi\
 		$(ARCH)
 

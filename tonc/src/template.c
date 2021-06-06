@@ -13,7 +13,7 @@ main(
 
     // ansi escape sequence to set print co-ordinates
     // /x1b[line;columnH
-    iprintf("\x1b[10;10HHello World!\n");
+    printf("\x1b[10;10HHello World!\n");
 
     while (true)
     {

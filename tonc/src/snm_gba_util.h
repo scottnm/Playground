@@ -28,7 +28,8 @@ snmgba_get_interrupt_mask();
 void
 snmgba_wait_for_vblank_interrupt();
 
-// A helper function which bootstraps a simple gba screen with a blue background and white foreground text
+// A helper function which bootstraps a simple gba screen with a blue background and white foreground text.
+// Additionally, this seems to setup some console system to intercept printf calls to write text to the screen. (neat).
 // Pretty much only useful for project setup.
 void
 snmgba_setup_simple_screen();
