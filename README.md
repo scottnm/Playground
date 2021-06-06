@@ -1,6 +1,9 @@
 # GBA Hello
 
-This is a simple Hello World style project for the GBA and also a place to collect all of my early learning dev notes for the GBA.
+This is a simple Hello World style project for the GBA and also a place to collect all of my early learning dev notes for the GBA. This project has me taking notes and learning from multiple sources:
+
+1. [Loriak's gba tutorial](http://www.loirak.com/gameboy/gbatutor.php) - this was the first tutorial I looked at
+2. [Tonc's gba tutorial](https://www.coranac.com/tonc/text/intro.htm) - this tutorial was recommended by the gbajam itch.io page and seems like it might be a more reliable source
 
 ## Table of contents
 
@@ -15,10 +18,13 @@ Here's a quick rundown of the different files hosted in this project:
 
 folder | description
 -------|------------
-`dev\dev_tools`  | This folder contains an archive of development tools I've found online. Archiving them in case their originally hosted webpages go missing. I've run across plenty of dead links so let's just be safe.
-`dev\docs`  | This folder contains an archive of development docs that I wanted to archive in case they suddenly vanish. I've run across plenty of dead links so let's just be safe.
-`ext`  | This folder contains source code that I'm pulling from outside of this project or which I've adapted from source code outside of this project.
-`src`  | This folder contains the source code I've written for this project.
+`dev\dev_tools\`  | This folder contains an archive of development tools I've found online. Archiving them in case their originally hosted webpages go missing. I've run across plenty of dead links so let's just be safe.
+`dev\docs\`  | This folder contains an archive of development docs that I wanted to archive in case they suddenly vanish. I've run across plenty of dead links so let's just be safe.
+`loriak\`  | This folder stores all files related to what I built from following the loriak tutorial.
+`loriak\src\`  | This folder contains the source code I've written for the loriak tutorial project.
+`loriak\ext\`  | This folder contains source code that I've pulled from outside of the loriak tutorial project or which I've adapted from source code outside of the project.
+`loriak\src\`  | This folder contains the source code I've written for the loriak tutorial project.
+`tonc\`  | This folder stores all files related to what I built from following the tonc tutorial.
 
 ## Notes
 
