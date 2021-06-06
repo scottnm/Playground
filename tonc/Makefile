@@ -10,7 +10,8 @@ include $(DEVKITARM)/gba_rules
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
-# BUILD is the directory where object files & intermediate files will be placed
+# OBJ is the directory where object files & intermediate files will be placed
+# OUTDIR is the directory where the final built game binaries are placed
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 # DATA is a list of directories containing binary data
@@ -20,12 +21,18 @@ include $(DEVKITARM)/gba_rules
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
+TARGET_OVERRIDE := hello_gba
 TARGET		:= $(notdir $(CURDIR))
-BUILD		:= build
+OBJ		:= obj
+OUTDIR		:= bin
 SOURCES		:= src
 INCLUDES	:= include
 DATA		:=
 MUSIC		:=
+
+ifneq ($(TARGET_OVERRIDE),)
+TARGET          := $(TARGET_OVERRIDE)
+endif
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -61,16 +68,16 @@ LIBDIRS	:=	$(LIBGBA)
 #---------------------------------------------------------------------------------
 
 
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+ifneq ($(OBJ),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/$(TARGET)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+export DEPSDIR	:=	$(CURDIR)/$(OBJ)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
@@ -106,21 +113,25 @@ export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-					-I$(CURDIR)/$(BUILD)
+					-I$(CURDIR)/$(OBJ)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean
+.PHONY: $(OBJ) clean
 
 #---------------------------------------------------------------------------------
-$(BUILD):
+$(OBJ):
+	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(OBJ) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
-	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
+	@echo cleaning ...
+	@echo "    $(OBJ)"
+	@rm -fr $(OBJ)
+	@echo "    $(OUTDIR)"
+	@rm -fr $(OUTDIR)
 
 
 #---------------------------------------------------------------------------------
