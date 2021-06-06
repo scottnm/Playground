@@ -133,6 +133,8 @@ clean:
 	@echo "    $(OUTDIR)"
 	@rm -fr $(OUTDIR)
 
+run:
+	VisualBoyAdvance.exe $(OUTPUT).gba
 
 #---------------------------------------------------------------------------------
 else
