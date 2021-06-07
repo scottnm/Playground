@@ -39,6 +39,8 @@ The GBA compiler used for this (devkitadv) is locked on a really old version of 
 
 A reverse-chronological log of little things that I learn as I go:
 
+* Tonc took time to clarify so reiterating... what mode4 enables is page flipping and not double buffering. Double buffering doesn't flip the buffers. It just uses a second buffer as a copy-able source. Whatever seems really pedantic to me but this tonc person but programming is full of pedants and sometimes for good reasons so I'll do my best to use the proper terms.
+* reiterating since I made this mistake while following along with the loriak demos... __You cannot write to VRAM in byte-sized chunks!!!__
 * it seems the difference between busyloops spinning on vsync and using interrupts is simplicity vs effective use of power. i.e. busyloops are simple but waste power, interrupts are a bit more complex but are power-safe. I should prefer interrupts going forward for the common case though small demos may be best to use busyloops (especially if running on an emulator only).
 * oh dang, apparently the reason a lot of games played slower on PAL TVs back in the day is because they had a slower refresh rate and old games used to lock/synchronize to the refresh rate.
 * oh dang, according to TonC, my use of u8s and u16s may be an awful idea.
