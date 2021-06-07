@@ -39,6 +39,8 @@ The GBA compiler used for this (devkitadv) is locked on a really old version of 
 
 A reverse-chronological log of little things that I learn as I go:
 
+* it seems the difference between busyloops spinning on vsync and using interrupts is simplicity vs effective use of power. i.e. busyloops are simple but waste power, interrupts are a bit more complex but are power-safe. I should prefer interrupts going forward for the common case though small demos may be best to use busyloops (especially if running on an emulator only).
+* oh dang, apparently the reason a lot of games played slower on PAL TVs back in the day is because they had a slower refresh rate and old games used to lock/synchronize to the refresh rate.
 * oh dang, according to TonC, my use of u8s and u16s may be an awful idea.
 * Oh dang, just started reading the tonc docs and it seems like starting with loriak's stuff may have been a mistake. There is a not so subtle suggestion that most tutorials are bunk and to be extra mindful of the bitmap mode tutorials
 * Tried to use the VDraw status register value to vsync and that didn't seem to work nearly as well as the waiting on the vcount register. I wonder why? I wonder if using interrupts is even better?
