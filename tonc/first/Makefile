@@ -21,7 +21,7 @@ include $(DEVKITARM)/gba_rules
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
-TARGET_OVERRIDE := hello_gba
+# TARGET_OVERRIDE := 
 TARGET		:= $(notdir $(CURDIR))
 OBJ		:= obj
 OUTDIR		:= bin
