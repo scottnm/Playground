@@ -4,20 +4,18 @@ int
 main(
     void)
 {
-    // The vblank interrupt must be enabled before calling snmgba_wait_for_vblank_interrupt(..). Though we don't need to
+    // The vblank interrupt must be enabled before calling gba_wait_for_vblank_interrupt(..). Though we don't need to
     // set a handler for this interrupt since the default dispatcher handles the bios flags.
-    snmgba_init_interrupt_system();
-    snmgba_enable_interrupt(SNMGBA_INTERRUPT_MASK_ENABLE_VBLANK_INTERRUPTS);
+    gba_init_interrupt_system();
+    gba_enable_interrupt(GBA_INTERRUPT_MASK_ENABLE_VBLANK_INTERRUPTS);
 
-    snmgba_setup_simple_screen(); // A basic blue screen
-
-    // ansi escape sequence to set print co-ordinates
-    // /x1b[line;columnH
-    printf("\x1b[10;10HHello World!\n");
+    gba_set_display_mode(
+        (gba_video_mode_t) { .value = GBA_VIDEO_MODE_MODE4_8BIT_PALETTE },
+        (gba_bg_mode_t) { .value = GBA_BG_MODE_ENABLE_BG2 });
 
     while (true)
     {
-        snmgba_wait_for_vblank_interrupt();
+        gba_wait_for_vblank_interrupt();
     }
 
     return 0;
