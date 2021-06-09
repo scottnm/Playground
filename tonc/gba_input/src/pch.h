@@ -1,18 +1,9 @@
-#ifndef __PCH_H__
-#define __PCH_H__
+#pragma once
 
-// CSTD
-#include <stddef.h>
-#include <stdint.h>
-// #include <stdio.h>
-#include <stdbool.h>
-#include <assert.h>
+// c-std includes
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <assert.h>
 
-// MINE
-#include "dbg.h"
-#include "util.h"
-#include "gba_util.h"
-
-#endif // __PCH_H__
+// project includes
+#include "snm_gba_util.h"
