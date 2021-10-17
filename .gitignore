@@ -1,0 +1,11 @@
+# executables 
+*.exe
+*.out
+
+# object files
+*.o
+*.obj
+
+# other misc intermediate build files
+*.ilk
+*.pdb
