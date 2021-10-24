@@ -83,17 +83,6 @@ namespace cs_server
             }
         }
 
-        private void WriteLogSection(
-            string sectionName,
-            bool startOrEnd)
-        {
-            Console.WriteLine(
-                "============ {0:12}: {1} ============{2}",
-                sectionName.ToUpper(),
-                startOrEnd ? "START" : "END",
-                startOrEnd ? "" : "\n");
-        }
-
         public void Run()
         {
             var serverTcpSocket = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Parse("127.0.0.1"), 80);
@@ -105,9 +94,36 @@ namespace cs_server
 
             while (true)
             {
-                WriteLogSection("connection", true);
-                Console.WriteLine("Waiting for connection...");
-                System.Net.Sockets.TcpClient client = serverTcpSocket.AcceptTcpClient();
+                bool processAnotherConnection = ProcessNextConnection(serverTcpSocket, networkStreamBuffer);
+                if (!processAnotherConnection)
+                {
+                    break;
+                }
+            }
+
+            serverTcpSocket.Stop();
+        }
+
+        public static bool ProcessNextConnection(
+            System.Net.Sockets.TcpListener serverTcpSocket,
+            NetworkStreamBuffer networkStreamBuffer)
+        {
+            void WriteLogSection(
+                string sectionName,
+                bool startOrEnd)
+            {
+                Console.WriteLine(
+                    "============ {0:12}: {1} ============{2}",
+                    sectionName.ToUpper(),
+                    startOrEnd ? "START" : "END",
+                    startOrEnd ? "" : "\n");
+            }
+
+            WriteLogSection("connection", true);
+            Console.WriteLine("Waiting for connection...");
+
+            using (System.Net.Sockets.TcpClient client = serverTcpSocket.AcceptTcpClient())
+            {
                 Console.WriteLine("A client connected! {0}", GetAddressString(client));
                 WriteLogSection("connection", false);
 
@@ -124,7 +140,7 @@ namespace cs_server
                 if (!request.StartsWith("GET"))
                 {
                     Console.WriteLine("Not a GET request. Rejecting client.");
-                    continue;
+                    return true;
                 }
 
                 const string CRLF = "\r\n"; // HTTP/1.1 uses CRLF as the end-of-line marker
@@ -194,6 +210,8 @@ namespace cs_server
                         if (msglen == 0)
                         {
                             Console.WriteLine("msglen == 0");
+                            Console.WriteLine("Client closed!");
+                            return true;
                         }
                         else if (mask)
                         {
@@ -206,9 +224,14 @@ namespace cs_server
 
                             string text = System.Text.Encoding.UTF8.GetString(decoded);
                             Console.WriteLine("{0}", text);
-                            if (text.ToLower() == "quit")
+
+                            if (text.ToLower() == "disconnect")
                             {
-                                break;
+                                return true;
+                            }
+                            else if (text.ToLower() == "quit")
+                            {
+                                return false;
                             }
                         }
                         else
@@ -221,9 +244,7 @@ namespace cs_server
                 }
 
                 WriteLogSection("chatting", false);
-                break; // FIXME: how can I break this loop but have the default be to loop
             }
-            serverTcpSocket.Stop();
         }
     }
 
@@ -232,7 +253,7 @@ namespace cs_server
         public static void Main()
         {
             new MyServer().Run();
-            new ReferenceServer().Run();
+            // new ReferenceServer().Run();
         }
     }
 }

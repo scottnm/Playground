@@ -8,38 +8,29 @@
 </style>
 <h2>WebSocket Test</h2>
 <textarea cols=60 rows=6></textarea>
-<button>send</button>
+<button id="open-button">open</button>
+<button id="send-button" disabled>send</button>
+<button id="close-button" disabled>close</button>
 <div id=output></div>
 <script>
     // http://www.websocket.org/echo.html
 
-    var button = document.querySelector("button"),
-        output = document.querySelector("#output"),
-        textarea = document.querySelector("textarea"),
-        // wsUri = "ws://echo.websocket.org/",
-        wsUri = "ws://127.0.0.1/",
-        websocket = new WebSocket(wsUri);
+    var openButton = document.querySelector("#open-button");
+    var sendButton = document.querySelector("#send-button");
+    var closeButton = document.querySelector("#close-button");
 
-    button.addEventListener("click", onClickButton);
+    var output = document.querySelector("#output");
+    var textarea = document.querySelector("textarea");
+    // var wsUri = "ws://echo.websocket.org/";
+    var wsUri = "ws://127.0.0.1/";
 
-    websocket.onopen = function (e) {
-        writeToScreen("CONNECTED");
-        doSend("WebSocket rocks");
-    };
+    var websocket = null;
 
-    websocket.onclose = function (e) {
-        writeToScreen("DISCONNECTED");
-    };
+    openButton.addEventListener("click", onClickOpenButton);
+    sendButton.addEventListener("click", onClickSendButton);
+    closeButton.addEventListener("click", onClickCloseButton);
 
-    websocket.onmessage = function (e) {
-        writeToScreen("<span>RESPONSE: " + e.data + "</span>");
-    };
-
-    websocket.onerror = function (e) {
-        writeToScreen("<span class=error>ERROR:</span> " + e.data);
-    };
-
-    function doSend(message) {
+    function sendMessage(message) {
         writeToScreen("SENT: " + message);
         websocket.send(message);
     }
@@ -48,11 +39,63 @@
         output.insertAdjacentHTML("afterbegin", "<p>" + message + "</p>");
     }
 
-    function onClickButton() {
-        var text = textarea.value;
+    function writeErrorToScreen(error) {
+        writeToScreen("<span class=error>ERROR:</span> " + error);
+    }
 
-        text && doSend(text);
+    function onClickOpenButton() {
+        if (websocket !== null) {
+            writeErrorToScreen("WebSocket must be closed before re-opening");
+            return;
+        }
+
+        websocket = new WebSocket(wsUri); 
+        websocket.onopen = function (e) {
+            writeToScreen("CONNECTED");
+            sendMessage("WebSocket rocks");
+            openButton.disabled = true;
+            sendButton.disabled = false;
+            closeButton.disabled = false;
+        };
+
+        websocket.onclose = function (e) {
+            writeToScreen("DISCONNECTED");
+            openButton.disabled = false;
+            sendButton.disabled = true;
+            closeButton.disabled = true;
+            websocket = null;
+        };
+
+        websocket.onmessage = function (e) {
+            writeToScreen("<span>RESPONSE: " + e.data + "</span>");
+        };
+
+        websocket.onerror = function (e) {
+            writeErrorToScreen(e.data);
+        };
+
+        openButton.disabled = true;
+    }
+
+    function onClickSendButton() {
+        var text = textarea.value;
+        if (text) {
+            sendMessage(text);
+        }
+
         textarea.value = "";
         textarea.focus();
     }
+
+    function onClickCloseButton() {
+        if (websocket === null) {
+            writeErrorToScreen("WebSocket must be opened before closing");
+            return;
+        }
+
+        websocket.close();
+        sendButton.disabled = true;
+        closeButton.disabled = true;
+    }
+
 </script>
