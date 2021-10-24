@@ -83,6 +83,17 @@ namespace cs_server
             }
         }
 
+        private void WriteLogSection(
+            string sectionName,
+            bool startOrEnd)
+        {
+            Console.WriteLine(
+                "============ {0:12}: {1} ============{2}",
+                sectionName.ToUpper(),
+                startOrEnd ? "START" : "END",
+                startOrEnd ? "" : "\n");
+        }
+
         public void Run()
         {
             var serverTcpSocket = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Parse("127.0.0.1"), 80);
@@ -91,17 +102,6 @@ namespace cs_server
             Console.WriteLine("Server has started on {0}!", GetAddressString(serverTcpSocket));
 
             var networkStreamBuffer = new NetworkStreamBuffer();
-
-            void WriteLogSection(
-                string sectionName,
-                bool startOrEnd)
-            {
-                Console.WriteLine(
-                    "============ {0:12}: {1} ============{2}",
-                    sectionName.ToUpper(),
-                    startOrEnd ? "START" : "END",
-                    startOrEnd ? "" : "\n");
-            }
 
             while (true)
             {
@@ -206,6 +206,10 @@ namespace cs_server
 
                             string text = System.Text.Encoding.UTF8.GetString(decoded);
                             Console.WriteLine("{0}", text);
+                            if (text.ToLower() == "quit")
+                            {
+                                break;
+                            }
                         }
                         else
                         {
@@ -217,7 +221,9 @@ namespace cs_server
                 }
 
                 WriteLogSection("chatting", false);
+                break; // FIXME: how can I break this loop but have the default be to loop
             }
+            serverTcpSocket.Stop();
         }
     }
 
@@ -226,7 +232,7 @@ namespace cs_server
         public static void Main()
         {
             new MyServer().Run();
-            // new ReferenceServer().Run();
+            new ReferenceServer().Run();
         }
     }
 }

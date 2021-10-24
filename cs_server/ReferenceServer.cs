@@ -80,12 +80,17 @@ namespace cs_server
 
                         string text = Encoding.UTF8.GetString(decoded);
                         Console.WriteLine("{0}", text);
+                        if (text.ToLower() == "quit")
+                        {
+                            break;
+                        }
                     } else
                         Console.WriteLine("mask bit not set");
 
                     Console.WriteLine();
                 }
             }
+            server.Stop();
         }
     }
 }
