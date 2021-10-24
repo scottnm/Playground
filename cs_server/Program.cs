@@ -145,6 +145,7 @@ namespace cs_server
                     "Upgrade: websocket",
                     "Sec-WebSocket-Accept: " + Convert.ToBase64String(hashedSecWebSocketAcceptBytes),
                     "",
+                    "",
                 };
 
                 string response = String.Join(CRLF, responseLines);
