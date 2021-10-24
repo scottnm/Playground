@@ -6,6 +6,7 @@
 
 #include "../common/TinyC_Time.h" // StrIEq
 #include "../common/TinyC_String.h" // GetLocalTime
+#include "../common/TinyC_Args.h" // HasArg,PrintArgs
 
 typedef enum DayPhase
 {
@@ -134,32 +135,6 @@ GetMoonPhaseName(
         case MoonPhase_WaningCrescent:
         default:
             return "Waning Crescent";
-    }
-}
-
-bool HasArg(
-    int argc,
-    char** argv,
-    const char* arg)
-{
-    for (int i = 1; i < argc; ++i) // skip the program name
-    {
-        if (StrIEq(argv[i], arg))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void PrintArgs(
-    int argc,
-    char** argv)
-{
-    printf("Args (%i):\n", argc);
-    for (int i = 0; i < argc; ++i)
-    {
-        printf("    %i) %s\n", i, argv[i]);
     }
 }
 

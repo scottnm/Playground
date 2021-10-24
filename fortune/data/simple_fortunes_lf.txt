@@ -1,0 +1,6 @@
+fortune 1
+
+fortune 2 line1
+fortune 2 line2
+
+fortune 3
