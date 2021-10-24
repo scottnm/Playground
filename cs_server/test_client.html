@@ -13,15 +13,12 @@
 <button id="close-button" disabled>close</button>
 <div id=output></div>
 <script>
-    // http://www.websocket.org/echo.html
-
     var openButton = document.querySelector("#open-button");
     var sendButton = document.querySelector("#send-button");
     var closeButton = document.querySelector("#close-button");
 
     var output = document.querySelector("#output");
     var textarea = document.querySelector("textarea");
-    // var wsUri = "ws://echo.websocket.org/";
     var wsUri = "ws://127.0.0.1/";
 
     var websocket = null;
