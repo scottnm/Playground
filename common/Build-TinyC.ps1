@@ -6,14 +6,10 @@ param(
     )
 
 Write-Host -ForegroundColor Cyan "Compiling $($OutputFile)..."
-Write-Host -ForegroundColor DarkGray "    cl /TC $Files /std:c17 /I /W4 /Z7 /nologo /Fe:$OutputFile"
-cl /TC $Files /std:c17 /I /W4 /Z7 /nologo /Fe:$OutputFile
 
-if (!$?)
-{
-    Write-Warning "Failed to compile $OutputFile!"
-    return;
-}
+$compileCmd = "cl /TC $Files /std:c17 /w44800 /W4 /WX /Z7 /nologo /Fe:$OutputFile; if (!`$?) { throw 'Failed to compile $OutputFile' }"
+Write-Host -ForegroundColor DarkGray "    $compileCmd"
+Invoke-Expression $compileCmd
 
 if ($Run)
 {

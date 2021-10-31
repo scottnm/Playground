@@ -1,19 +1,29 @@
 #pragma once
 
 static inline
+int FindArg(
+    int argc,
+    char** argv,
+    const char* arg)
+{
+    for (int i = 0; i < argc; ++i)
+    {
+        if (StrIEq(argv[i], arg))
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static inline
 bool HasArg(
     int argc,
     char** argv,
     const char* arg)
 {
-    for (int i = 1; i < argc; ++i) // skip the program name
-    {
-        if (StrIEq(argv[i], arg))
-        {
-            return true;
-        }
-    }
-    return false;
+    return FindArg(argc, argv, arg) != -1;
 }
 
 static inline
