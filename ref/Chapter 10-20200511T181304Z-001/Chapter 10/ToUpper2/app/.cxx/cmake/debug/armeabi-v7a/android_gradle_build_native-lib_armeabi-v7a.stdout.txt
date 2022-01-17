@@ -1,0 +1,52 @@
+ninja: Entering directory `/home/stephen/AndroidStudioProjects/ToUpper2/app/.cxx/cmake/debug/armeabi-v7a'
+[1/2] Building ASM object CMakeFiles/native-lib.dir/upper.s.o
+FAILED: CMakeFiles/native-lib.dir/upper.s.o 
+/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target armv7-none-linux-androideabi21 -gcc-toolchain /home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Dnative_lib_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -fno-addrsig -march=armv7-a -mthumb -Wa,--noexecstack -Wformat -Werror=format-security  -O0 -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/native-lib.dir/upper.s.o -MF CMakeFiles/native-lib.dir/upper.s.o.d -o CMakeFiles/native-lib.dir/upper.s.o -c /home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s
+clang: warning: argument unused during compilation: '-D native_lib_EXPORTS' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-D ANDROID' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-fdata-sections' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-ffunction-sections' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-funwind-tables' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-fstack-protector-strong' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-fno-addrsig' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-fstandalone-debug' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-MD' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-MT CMakeFiles/native-lib.dir/upper.s.o' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-MF CMakeFiles/native-lib.dir/upper.s.o.d' [-Wunused-command-line-argument]
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:14:6: error: operand must be a register in range [r0, r15]
+        MOV     X4, X1
+                ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:16:17: error: register expected
+loop:   LDRB    W5, [X0], #1    // load character and increment pointer
+                     ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:18:6: error: operand must be a register in range [r0, r15]
+        CMP     W5, #'z'            // is letter > 'z'?
+                ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:19:2: error: invalid instruction
+        B.GT    cont
+        ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:21:6: error: operand must be a register in range [r0, r15]
+        CMP     W5, #'a'
+                ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:22:2: error: invalid instruction
+        B.LT    cont    // goto to end if
+        ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:24:2: error: invalid instruction
+        SUB     W5, W5, #('a'-'A')
+        ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:26:12: error: register expected
+        STRB    W5, [X1], #1    // store character to output str
+                     ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:27:6: error: operand must be a register in range [r0, r15]
+        CMP     W5, #0          // stop on hitting a null character
+                ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:28:2: error: invalid instruction
+        B.NE    loop            // loop if character isn't null
+        ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:29:2: error: invalid instruction
+        SUB     X0, X1, X4  // get the length by subtracting the pointers
+        ^
+/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s:30:2: error: invalid instruction, did you mean: rev?
+        RET             // Return to caller
+        ^
+ninja: build stopped: subcommand failed.

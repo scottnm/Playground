@@ -1,0 +1,6 @@
+# ninja log v5
+3	136	1579641344	CMakeFiles/native-lib.dir/upper.s.o	f5b5149d74e531d
+1	482	1579641345	CMakeFiles/native-lib.dir/native-lib.cpp.o	b2dd187fb9330ef5
+483	577	1579641345	/home/stephen/AndroidStudioProjects/ToUpper2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libnative-lib.so	49b6b8a464899a6e
+4	884	1579642973	CMakeFiles/native-lib.dir/native-lib.cpp.o	b2dd187fb9330ef5
+885	1101	1579642973	/home/stephen/AndroidStudioProjects/ToUpper2/app/build/intermediates/cmake/debug/obj/arm64-v8a/libnative-lib.so	49b6b8a464899a6e

@@ -1,0 +1,13 @@
+[
+{
+  "directory": "/home/stephen/AndroidStudioProjects/ToUpper2/app/.cxx/cmake/debug/arm64-v8a",
+  "command": "/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android21 --gcc-toolchain=/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot  -Dnative_lib_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -fno-addrsig -Wa,--noexecstack -Wformat -Werror=format-security   -O0 -fno-limit-debug-info -fno-experimental-isel  -fPIC   -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c /home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/native-lib.cpp",
+  "file": "/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/native-lib.cpp"
+},
+
+{
+  "directory": "/home/stephen/AndroidStudioProjects/ToUpper2/app/.cxx/cmake/debug/arm64-v8a",
+  "command": "/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/clang -target aarch64-none-linux-android21 -gcc-toolchain /home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/stephen/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot -Dnative_lib_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -fno-addrsig -Wa,--noexecstack -Wformat -Werror=format-security  -O0 -fno-limit-debug-info -fno-experimental-isel  -fPIC   -o CMakeFiles/native-lib.dir/upper.s.o -c /home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s",
+  "file": "/home/stephen/AndroidStudioProjects/ToUpper2/app/src/main/cpp/upper.s"
+}
+]
