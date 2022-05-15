@@ -1,0 +1,98 @@
+<!doctype html>
+<style>
+    textarea { vertical-align: bottom; }
+    #output { overflow: auto; }
+    #output > p { overflow-wrap: break-word; }
+    #output span { color: blue; }
+    #output span.error { color: red; }
+</style>
+<h2>WebSocket Test</h2>
+<textarea cols=60 rows=6></textarea>
+<button id="open-button">open</button>
+<button id="send-button" disabled>send</button>
+<button id="close-button" disabled>close</button>
+<div id=output></div>
+<script>
+    var openButton = document.querySelector("#open-button");
+    var sendButton = document.querySelector("#send-button");
+    var closeButton = document.querySelector("#close-button");
+
+    var output = document.querySelector("#output");
+    var textarea = document.querySelector("textarea");
+    var wsUri = "ws://127.0.0.1/";
+
+    var websocket = null;
+
+    openButton.addEventListener("click", onClickOpenButton);
+    sendButton.addEventListener("click", onClickSendButton);
+    closeButton.addEventListener("click", onClickCloseButton);
+
+    function sendMessage(message) {
+        writeToScreen("SENT: " + message);
+        websocket.send(message);
+    }
+
+    function writeToScreen(message) {
+        output.insertAdjacentHTML("afterbegin", "<p>" + message + "</p>");
+    }
+
+    function writeErrorToScreen(error) {
+        writeToScreen("<span class=error>ERROR:</span> " + error);
+    }
+
+    function onClickOpenButton() {
+        if (websocket !== null) {
+            writeErrorToScreen("WebSocket must be closed before re-opening");
+            return;
+        }
+
+        websocket = new WebSocket(wsUri); 
+        websocket.onopen = function (e) {
+            writeToScreen("CONNECTED");
+            sendMessage("WebSocket rocks");
+            openButton.disabled = true;
+            sendButton.disabled = false;
+            closeButton.disabled = false;
+        };
+
+        websocket.onclose = function (e) {
+            writeToScreen("DISCONNECTED");
+            openButton.disabled = false;
+            sendButton.disabled = true;
+            closeButton.disabled = true;
+            websocket = null;
+        };
+
+        websocket.onmessage = function (e) {
+            writeToScreen("<span>RESPONSE: " + e.data + "</span>");
+        };
+
+        websocket.onerror = function (e) {
+            writeErrorToScreen(e.data);
+        };
+
+        openButton.disabled = true;
+    }
+
+    function onClickSendButton() {
+        var text = textarea.value;
+        if (text) {
+            sendMessage(text);
+        }
+
+        textarea.value = "";
+        textarea.focus();
+    }
+
+    function onClickCloseButton() {
+        if (websocket === null) {
+            writeErrorToScreen("WebSocket must be opened before closing");
+            return;
+        }
+
+        websocket.close();
+        sendButton.disabled = true;
+        closeButton.disabled = true;
+    }
+
+</script>
