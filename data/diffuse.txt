@@ -1,0 +1,6 @@
+Opts { output: "data\\diffuse.ppm", meta_output: "data\\diffuse.txt", aa_sample_size: 100, width: 400, height: 200 }
+
+ Profile    | Time     
+------------|----------
+ File Write |      0s
+ Render     |     67s
