@@ -63,6 +63,7 @@ public class Movement : MonoBehaviour
         // only the 3rd segment onward are collidable
         newTailSegment.GetComponent<SphereCollider>().enabled = m_segments.Count > 2;
         m_segments.Add(newTailSegment);
+        GameObject.Find("PointCounter").GetComponent<PointCounterUIController>().SetPointCounter(m_segments.Count - 1);
     }
 
     public void StopMovement()
