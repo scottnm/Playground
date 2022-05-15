@@ -6,23 +6,31 @@ public class Movement : MonoBehaviour
     public GameObject TailSegment;
 
     private List<GameObject> m_segments;
+    private bool m_gameOver;
 
     // Start is called before the first frame update
     void Start()
     {
         m_segments = new List<GameObject>();
         m_segments.Add(gameObject); // add the head to the segment list
+        m_gameOver = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (m_gameOver)
+        {
+            // noop our player movement update if the game is over
+            return;
+        }
+
         // Move the head first
         const float PITCH_MAX = 0.1f;
         const float ROLL_MAX = 0.1f;
         const float FORWARD_SPEED = 2.0f;
 
-        var pitch = PITCH_MAX * Input.GetAxis("Vertical");
+        var pitch = PITCH_MAX * Input.GetAxis("Vertical") * -1; // -1 to invert the pitch for more natural feel
         var roll = ROLL_MAX * Input.GetAxis("Horizontal") * -1; // -1 to invert roll for more natural feel
         transform.Rotate(pitch, 0, roll, Space.Self);
         transform.position += transform.forward * Time.deltaTime * FORWARD_SPEED;
@@ -52,5 +60,10 @@ public class Movement : MonoBehaviour
         var behindLastSegment = lastSegment.transform.position + (lastSegment.transform.forward * -2 * lastSegment.GetComponent<SphereCollider>().radius);
         var newTailSegment = Instantiate(TailSegment, behindLastSegment, lastSegment.transform.rotation);
         m_segments.Add(newTailSegment);
+    }
+
+    public void OnHitWall()
+    {
+        m_gameOver = true;
     }
 }
