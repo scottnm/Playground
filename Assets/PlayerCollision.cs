@@ -21,8 +21,7 @@ public class PlayerCollision : MonoBehaviour
         Debug.Log("Collision! " + collider.gameObject.name);
         if (collider.gameObject.tag == "Pellet")
         {
-            // dynamically creating and destroying pellets probably isn't a good idea for a real game but for this demo its fine.
-            Destroy(collider.gameObject);
+            (GameObject.Find("PelletSpawner").gameObject.GetComponent<PelletSpawner>()).OnPelletHit(collider.gameObject);
             gameObject.GetComponent<Movement>().GenerateTailSegment();
         }
         else if (collider.gameObject.tag == "Wall")
