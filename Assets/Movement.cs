@@ -6,20 +6,20 @@ public class Movement : MonoBehaviour
     public GameObject TailSegment;
 
     private List<GameObject> m_segments;
-    private bool m_gameOver;
+    private bool m_movementStopped;
 
     // Start is called before the first frame update
     void Start()
     {
         m_segments = new List<GameObject>();
         m_segments.Add(gameObject); // add the head to the segment list
-        m_gameOver = false;
+        m_movementStopped = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (m_gameOver)
+        if (m_movementStopped)
         {
             // noop our player movement update if the game is over
             return;
@@ -59,11 +59,14 @@ public class Movement : MonoBehaviour
         var lastSegment = m_segments[m_segments.Count - 1];
         var behindLastSegment = lastSegment.transform.position + (lastSegment.transform.forward * -2 * lastSegment.GetComponent<SphereCollider>().radius);
         var newTailSegment = Instantiate(TailSegment, behindLastSegment, lastSegment.transform.rotation);
+
+        // only the 3rd segment onward are collidable
+        newTailSegment.GetComponent<SphereCollider>().enabled = m_segments.Count > 2;
         m_segments.Add(newTailSegment);
     }
 
-    public void OnHitWall()
+    public void StopMovement()
     {
-        m_gameOver = true;
+        m_movementStopped = true;
     }
 }

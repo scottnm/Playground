@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Pellet
   - Wall
+  - Tail
   layers:
   - Default
   - TransparentFX
