@@ -3,4 +3,7 @@
 __pycache__
 tmp*
 venv
-
+target/
+*.exe
+*.lib
+*.obj
