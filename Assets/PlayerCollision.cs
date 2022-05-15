@@ -38,5 +38,6 @@ public class PlayerCollision : MonoBehaviour
     {
         gameObject.GetComponent<Movement>().StopMovement();
         GameObject.Find("UI").GetComponent<GameOverUIController>().TriggerGameOver();
+        GameObject.Find("GameOverCameraSpot").GetComponent<GameOverCameraSpin>().StartGameOverCameraSpin();
     }
 }
