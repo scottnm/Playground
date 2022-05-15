@@ -23,6 +23,7 @@ public class PlayerCollision : MonoBehaviour
         {
             // dynamically creating and destroying pellets probably isn't a good idea for a real game but for this demo its fine.
             Destroy(collider.gameObject);
+            gameObject.GetComponent<Movement>().GenerateTailSegment();
         }
     }
 }
