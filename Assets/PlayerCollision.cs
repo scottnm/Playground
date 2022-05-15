@@ -26,13 +26,17 @@ public class PlayerCollision : MonoBehaviour
         }
         else if (collider.gameObject.tag == "Wall")
         {
-            gameObject.GetComponent<Movement>().StopMovement();
-            GameObject.Find("GameOverText").gameObject.SetActive(true);
+            TriggerGameOver();
         }
         else if (collider.gameObject.tag == "Tail")
         {
-            gameObject.GetComponent<Movement>().StopMovement();
-            GameObject.Find("GameOverText").gameObject.SetActive(true);
+            TriggerGameOver();
         }
+    }
+
+    void TriggerGameOver()
+    {
+        gameObject.GetComponent<Movement>().StopMovement();
+        GameObject.Find("UI").GetComponent<GameOverUIController>().TriggerGameOver();
     }
 }
