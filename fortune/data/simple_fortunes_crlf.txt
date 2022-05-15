@@ -1,0 +1,7 @@
+WIN fortune 1
+
+WIN fortune 2 line1
+WIN fortune 2 line2
+
+WIN fortune 3
+
