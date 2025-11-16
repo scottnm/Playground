@@ -4,12 +4,6 @@
 namespace CppTestLib
 {
 
-struct SomeStruct
-{
-    int ival;
-    char cval;
-};
-
 void TakeSomeCppParams(const std::string& str)
 {
     printf("=> %30s :: %s\n", __PRETTY_FUNCTION__, str.c_str());
@@ -37,4 +31,6 @@ int ReturnSomePodValue(int i)
     int val = i * i;
     printf("<= %30s :: %i\n", __PRETTY_FUNCTION__, val);
     return val;
+}
+
 }
