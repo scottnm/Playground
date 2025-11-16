@@ -32,9 +32,9 @@ void OutStructPtrParam(SomeStruct* osp)
     printf("<= %30s :: {i=%i, c=%c}\n", __PRETTY_FUNCTION__, osp->ival, osp->cval);
 }
 
-int ReturnSomePodValue()
+int ReturnSomePodValue(int i)
 {
-    constexpr int c_someVal = 20;
-    printf("<= %30s :: %i\n", __PRETTY_FUNCTION__, c_someVal);
-    return c_someVal;
+    int val = i * i;
+    printf("<= %30s :: %i\n", __PRETTY_FUNCTION__, val);
+    return val;
 }

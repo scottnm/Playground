@@ -12,5 +12,5 @@ namespace CppTestLib
     void TakeAPtrParam(const int* ip);
     void TakeAStructPtrParam(const SomeStruct* sp);
     void OutStructPtrParam(SomeStruct* osp);
-    int ReturnSomePodValue();
+    int ReturnSomePodValue(int i);
 }
