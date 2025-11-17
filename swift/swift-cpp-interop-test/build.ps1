@@ -11,7 +11,7 @@ try {
 
     Write-Host -foregroundcolor cyan "configuring"
     cd $outputDir
-    cmake "$PSScriptRoot"
+    cmake -G Xcode "$PSScriptRoot"
 
     Write-Host -foregroundcolor cyan "building"
     cmake --build .
