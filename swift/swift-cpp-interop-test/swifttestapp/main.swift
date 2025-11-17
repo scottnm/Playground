@@ -1,6 +1,7 @@
 import cpptestlib
 import CxxStdlib
 
+print("Hello, World!"); 
 cpptestlib.CppTestLib.TakeSomeCppParams("test123");
 
 var i: Int32 = 5;
@@ -19,7 +20,6 @@ var outVal  = cpptestlib.CppTestLib.SomeStruct(ival: 0, cval: 0);
 cpptestlib.CppTestLib.OutStructPtrParam(&outVal);
 let outValCvalChar = Character(UnicodeScalar(UInt8(outVal.cval)))
 print("OutStructPtr Param result = \(outVal.ival) \(outValCvalChar)")
-// 
-// const int rv = CppTestLib::ReturnSomePodValue(10);
-// NSLog(@".. received %i from CppTestLib::ReturnSomePodValue", rv);
-print("Hello, World!"); 
+
+let rv = cpptestlib.CppTestLib.ReturnSomePodValue(10);
+print(".. received \(rv) from CppTestLib::ReturnSomePodValue");
