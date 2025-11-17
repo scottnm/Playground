@@ -9,3 +9,6 @@ target_include_directories(
 target_compile_options(
     swifttestapp
     PRIVATE -cxx-interoperability-mode=default)
+target_link_libraries(
+    swifttestapp
+    PRIVATE cpptestlib)
