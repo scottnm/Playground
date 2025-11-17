@@ -2,7 +2,9 @@ import cpptestlib
 import CxxStdlib
 
 print("Hello, World!"); 
-cpptestlib.CppTestLib.TakeSomeCppParams("test123");
+
+let test123str = std.string("test123");
+cpptestlib.CppTestLib.TakeSomeCppParams(test123str);
 
 var i: Int32 = 5;
 cpptestlib.CppTestLib.TakeAPtrParam(&i);
