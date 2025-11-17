@@ -1,0 +1,6 @@
+// Allows compiling cpptestlib as a "clang module" which can be imported into swift
+module cpptestlib {
+    header "lib.h"
+    
+    export *
+}
