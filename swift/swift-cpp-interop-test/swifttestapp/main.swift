@@ -13,9 +13,12 @@ let inVal = cpptestlib.CppTestLib.SomeStruct(
 withUnsafePointer(to: inVal) { inValPtr in
     cpptestlib.CppTestLib.TakeAStructPtrParam(inValPtr);
 }
-// 
-// CppTestLib::SomeStruct outVal;
-// CppTestLib::OutStructPtrParam(&outVal);
+
+// FIXME: is there a way to *NOT* initialize outVal?
+var outVal  = cpptestlib.CppTestLib.SomeStruct(ival: 0, cval: 0);
+cpptestlib.CppTestLib.OutStructPtrParam(&outVal);
+let outValCvalChar = Character(UnicodeScalar(UInt8(outVal.cval)))
+print("OutStructPtr Param result = \(outVal.ival) \(outValCvalChar)")
 // 
 // const int rv = CppTestLib::ReturnSomePodValue(10);
 // NSLog(@".. received %i from CppTestLib::ReturnSomePodValue", rv);
