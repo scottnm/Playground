@@ -2,12 +2,17 @@ import cpptestlib
 import CxxStdlib
 
 cpptestlib.CppTestLib.TakeSomeCppParams("test123");
-// 
-// int i = 5;
-// CppTestLib::TakeAPtrParam(&i);
-// 
-// CppTestLib::SomeStruct inVal{30, 'Z'};
-// CppTestLib::TakeAStructPtrParam(&inVal);
+
+var i: Int32 = 5;
+cpptestlib.CppTestLib.TakeAPtrParam(&i);
+
+let cval: Character = "Z";
+let inVal = cpptestlib.CppTestLib.SomeStruct(
+    ival: 30, 
+    cval: CChar(cval.asciiValue!));
+withUnsafePointer(to: inVal) { inValPtr in
+    cpptestlib.CppTestLib.TakeAStructPtrParam(inValPtr);
+}
 // 
 // CppTestLib::SomeStruct outVal;
 // CppTestLib::OutStructPtrParam(&outVal);
